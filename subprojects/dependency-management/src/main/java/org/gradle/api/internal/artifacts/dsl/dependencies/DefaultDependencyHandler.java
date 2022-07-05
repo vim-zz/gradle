@@ -110,7 +110,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         this.artifactTypeContainer = artifactTypeContainer;
         this.objects = objects;
         this.platformSupport = platformSupport;
-        configureSchema();
+
+        attributesSchema.attribute(ARTIFACT_TYPE_ATTRIBUTE);
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
     }
 
@@ -325,10 +326,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public AttributesSchema getAttributesSchema() {
         return attributesSchema;
-    }
-
-    private void configureSchema() {
-        attributesSchema.attribute(ARTIFACT_TYPE_ATTRIBUTE);
     }
 
     @Override

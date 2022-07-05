@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -47,7 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
+public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = new HashMap<>();
@@ -55,7 +54,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
     private final DefaultAttributeMatcher matcher;
     private final IsolatableFactory isolatableFactory;
-    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
 
@@ -81,7 +79,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     }
 
     @Override
-    public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
+    public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, @Nullable Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
             strategy = Cast.uncheckedCast(instantiatorFactory.decorateLenient().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory));
@@ -105,7 +103,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     }
 
     AttributeSelectionSchema mergeWith(AttributesSchemaInternal producerSchema) {
-        return new MergedSchema(producerSchema);
+        return new MergedSchema(this, producerSchema);
     }
 
     @Override
@@ -166,6 +164,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         return Collections.unmodifiableList(new ArrayList<>(precedence));
     }
 
+    @Nullable
+    private Attribute<?> getAttributeByName(String name) {
+        return attributesByName.get(name);
+    }
+
     private static class DefaultAttributeMatcher implements AttributeMatcher {
         private final ComponentAttributeMatcher componentAttributeMatcher;
         private final AttributeSelectionSchema effectiveSchema;
@@ -201,23 +204,27 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
     }
 
-    private class MergedSchema implements AttributeSelectionSchema {
+    private static class MergedSchema implements AttributeSelectionSchema {
+        private final DefaultAttributesSchema firstSchema;
         private final AttributesSchemaInternal producerSchema;
 
-        MergedSchema(AttributesSchemaInternal producerSchema) {
+        private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new HashMap<>();
+
+        MergedSchema(DefaultAttributesSchema firstSchema, AttributesSchemaInternal producerSchema) {
+            this.firstSchema = firstSchema;
             this.producerSchema = producerSchema;
         }
 
         @Override
         public boolean hasAttribute(Attribute<?> attribute) {
-            return DefaultAttributesSchema.this.getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
+            return firstSchema.getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
         }
 
         @Override
         public Set<Object> disambiguate(Attribute<?> attribute, @Nullable Object requested, Set<Object> candidates) {
             DefaultMultipleCandidateResult<Object> result = null;
 
-            DisambiguationRule<Object> rules = disambiguationRules(attribute);
+            DisambiguationRule<Object> rules = firstSchema.disambiguationRules(attribute);
             if (rules.doesSomething()) {
                 result = new DefaultMultipleCandidateResult<>(requested, candidates);
                 rules.execute(result);
@@ -252,7 +259,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
             CompatibilityCheckResult<Object> result = null;
 
-            CompatibilityRule<Object> rules = compatibilityRules(attribute);
+            CompatibilityRule<Object> rules = firstSchema.compatibilityRules(attribute);
             if (rules.doesSomething()) {
                 result = new DefaultCompatibilityCheckResult<>(requested, candidate);
                 rules.execute(result);
@@ -277,12 +284,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public Attribute<?> getAttribute(String name) {
-            Attribute<?> attribute = attributesByName.get(name);
+            Attribute<?> attribute = firstSchema.getAttributeByName(name);
             if (attribute != null) {
                 return attribute;
             }
             if (producerSchema instanceof DefaultAttributesSchema) {
-                return ((DefaultAttributesSchema) producerSchema).attributesByName.get(name);
+                return ((DefaultAttributesSchema) producerSchema).getAttributeByName(name);
             }
             for (Attribute<?> producerAttribute : producerSchema.getAttributes()) {
                 if (producerAttribute.getName().equals(name)) {
@@ -319,8 +326,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
-            if (precedence.isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
-                // if no attribute precedence has been set anywhere, we can just iterate in order
+            List<Attribute<?>> firstPrecedence = firstSchema.getAttributeDisambiguationPrecedence();
+            if (firstPrecedence.isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
+                // If no attribute precedence has been set anywhere, we can just iterate in order
                 return new PrecedenceResult(IntStream.range(0, requested.keySet().size()).boxed().collect(Collectors.toList()));
             } else {
                 // Populate requested attribute -> position in requested attribute list
@@ -332,7 +340,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                 List<Integer> sorted = new ArrayList<>(remaining.size());
 
                 // Add attribute index to sorted in the order of precedence by the consumer
-                for (Attribute<?> preferredAttribute : precedence) {
+                for (Attribute<?> preferredAttribute : firstPrecedence) {
                     if (requested.contains(preferredAttribute)) {
                         sorted.add(remaining.remove(preferredAttribute.getName()));
                     }
@@ -407,5 +415,4 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             return hashCode;
         }
     }
-
 }

@@ -87,10 +87,10 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private BitSet remaining;
     private Attribute<?>[] extraAttributes;
 
-    MultipleCandidateMatcher(AttributeSelectionSchema schema, Collection<? extends T> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    <E extends T> MultipleCandidateMatcher(AttributeSelectionSchema schema, Collection<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
         this.schema = schema;
         this.requested = requested;
-        this.candidates = (candidates instanceof List) ? (List<? extends T>) candidates : ImmutableList.copyOf(candidates);
+        this.candidates = (candidates instanceof List) ? (List<E>) candidates : ImmutableList.copyOf(candidates);
         candidateAttributeSets = new ImmutableAttributes[candidates.size()];
         this.explanationBuilder = explanationBuilder;
         for (int i = 0; i < candidates.size(); i++) {
@@ -396,7 +396,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         requestedAttributeValues[a] = value;
     }
 
-    private void setCandidateValue(int c, int a, Object value) {
+    private void setCandidateValue(int c, int a, @Nullable Object value) {
         requestedAttributeValues[getValueIndex(c, a)] = value;
     }
 

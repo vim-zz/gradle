@@ -50,13 +50,12 @@ public class JavaLibraryPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         ConfigurationContainer configurations = project.getConfigurations();
-        SourceSet sourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet sourceSet = project.getExtensions().getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         JvmPluginsHelper.addApiToSourceSet(sourceSet, configurations);
         makeCompileOnlyApiVisibleToTests(configurations);
         jvmEcosystemUtilities.configureClassesDirectoryVariant(sourceSet.getApiElementsConfigurationName(), sourceSet);
-        deprecateConfigurationsForDeclaration(sourceSets, configurations);
+        deprecateConfigurationsForDeclaration(sourceSet, configurations);
     }
 
     private void makeCompileOnlyApiVisibleToTests(ConfigurationContainer configurations) {
@@ -65,9 +64,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         testCompileOnly.extendsFrom(compileOnlyApi);
     }
 
-    private void deprecateConfigurationsForDeclaration(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
-        SourceSet sourceSet = sourceSets.getByName("main");
-
+    private void deprecateConfigurationsForDeclaration(SourceSet sourceSet, ConfigurationContainer configurations) {
         DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getApiElementsConfigurationName());
         DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
         DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
