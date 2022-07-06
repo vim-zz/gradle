@@ -150,6 +150,15 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
 
     /**
+     * The name of the configuration that should be used when compiling against the
+     * implementation of this component. This configuration is primarily meant to be
+     * consumed by unit tests.
+     *
+     * @since 7.6
+     */
+    public static final String COMPILE_ELEMENTS_CONFIGURATION_NAME = "compileElements";
+
+    /**
      * The name of the configuration that is used to declare dependencies which are only required to compile a component,
      * but not at runtime.
      */
@@ -327,19 +336,18 @@ public class JavaPlugin implements Plugin<Project> {
 
     private void configureArchivesAndComponent(Project project, final JavaPluginExtension pluginExtension) {
         PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginExtension), ((ProjectInternal) project).getFileResolver());
-        Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
-
         Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
+
+        Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         addJar(apiElementConfiguration, jarArtifact);
-        addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginExtension), processResources);
+        addRuntimeVariants(project.getConfigurations(), jarArtifact, mainSourceSetOf(pluginExtension), processResources);
 
         registerSoftwareComponents(project);
     }
 
-    private TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginExtension pluginExtension) {
+    private static TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginExtension pluginExtension) {
         TaskProvider<Jar> jarTaskProvider = project.getTasks().register(JAR_TASK_NAME, Jar.class);
         jarTaskProvider.configure(jar -> {
             jar.setDescription("Assembles a jar archive containing the main classes.");
@@ -370,7 +378,7 @@ public class JavaPlugin implements Plugin<Project> {
         return pluginExtension.getSourceSets().getByName(mainSourceSetName);
     }
 
-    private void configureJavadocTask(Project project, JavaPluginExtension javaPluginExtension) {
+    private static void configureJavadocTask(Project project, JavaPluginExtension javaPluginExtension) {
         SourceSet main = mainSourceSetOf(javaPluginExtension);
         configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension);
     }
@@ -384,7 +392,7 @@ public class JavaPlugin implements Plugin<Project> {
         project.getComponents().add(java);
     }
 
-    private void addJar(Configuration configuration, PublishArtifact jarArtifact) {
+    private static void addJar(Configuration configuration, PublishArtifact jarArtifact) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -392,8 +400,8 @@ public class JavaPlugin implements Plugin<Project> {
         publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(Configuration configuration, PublishArtifact jarArtifact, final SourceSet sourceSet, final Provider<ProcessResources> processResources) {
-        ConfigurationPublications publications = configuration.getOutgoing();
+    private void addRuntimeVariants(ConfigurationContainer configurations, PublishArtifact jarArtifact, final SourceSet sourceSet, final Provider<ProcessResources> processResources) {
+        ConfigurationPublications publications = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getOutgoing();
 
         // Configure an implicit variant
         publications.getArtifacts().add(jarArtifact);
@@ -414,7 +422,7 @@ public class JavaPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureBuild(Project project) {
+    private static void configureBuild(Project project) {
         project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
             JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
@@ -478,8 +486,8 @@ public class JavaPlugin implements Plugin<Project> {
      * @param otherProjectTaskName name of task in other projects
      * @param configurationName name of configuration to use to find the other projects
      */
-    private void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName,
-                                                 String configurationName) {
+    private static void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName,
+                                                        String configurationName) {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
@@ -524,5 +532,4 @@ public class JavaPlugin implements Plugin<Project> {
             return project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }
     }
-
 }

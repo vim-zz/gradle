@@ -344,6 +344,17 @@ public interface SourceSet extends ExtensionAware {
     String getApiElementsConfigurationName();
 
     /**
+     * Returns the name of the configuration that should be used when compiling against the
+     * implementation of this component. This configuration is primarily meant to be consumed
+     * by unit tests.
+     *
+     * @return The compile elements configuration name
+     *
+     * @since 7.6
+     */
+    String getCompileElementsConfigurationName();
+
+    /**
      * Returns the name of the configuration that contains dependencies that are only required
      * at runtime of the component. Dependencies found in this configuration are visible to
      * the runtime classpath of the component, but not to consumers.

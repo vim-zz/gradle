@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.View;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
@@ -291,6 +292,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         List<Capability> capabilities;
         boolean classDirectory;
         private boolean published;
+        private String view;
 
         @Inject
         public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components, TaskContainer tasks) {
@@ -319,6 +321,9 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                         details.apiUsage();
                     } else {
                         details.runtimeUsage();
+                    }
+                    if (view != null) {
+                        details.compileView();
                     }
                     if (attributesRefiner != null) {
                         attributesRefiner.execute(details);
@@ -422,6 +427,12 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         @Override
         public OutgoingElementsBuilder published() {
             this.published = true;
+            return this;
+        }
+
+        @Override
+        public OutgoingElementsBuilder compileView() {
+            this.view = View.JAVA_COMPILE;
             return this;
         }
 

@@ -180,6 +180,11 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    public String getCompileElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.COMPILE_ELEMENTS_CONFIGURATION_NAME);
+    }
+
+    @Override
     public String getRuntimeOnlyConfigurationName() {
         return configurationNameOf(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME);
     }

@@ -67,6 +67,8 @@ public class JavaLibraryPlugin implements Plugin<Project> {
     private void deprecateConfigurationsForDeclaration(SourceSet sourceSet, ConfigurationContainer configurations) {
         DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getApiElementsConfigurationName());
         DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
+        DeprecatableConfiguration compileElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileElementsConfigurationName());
+
         DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
         DeprecatableConfiguration runtimeClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
 
@@ -77,6 +79,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         apiElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
         runtimeElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
+        compileElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
 
         compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
         runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
