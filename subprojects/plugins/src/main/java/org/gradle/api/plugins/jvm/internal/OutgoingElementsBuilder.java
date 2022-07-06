@@ -119,4 +119,7 @@ public interface OutgoingElementsBuilder {
      * dependencies will appear as optional in the generated POM file.
      */
     OutgoingElementsBuilder published();
+
+
+    OutgoingElementsBuilder compileView();
 }

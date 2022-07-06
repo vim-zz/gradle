@@ -167,4 +167,7 @@ public interface JvmComponentDependencies {
      * @since 7.6
      */
     Dependency testFixtures(ModuleDependency moduleDependency);
+
+    public Dependency compileView(Project project);
+    public Dependency compileView(ModuleDependency dependency);
 }

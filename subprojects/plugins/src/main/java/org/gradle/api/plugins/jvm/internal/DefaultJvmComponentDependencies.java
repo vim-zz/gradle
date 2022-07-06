@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.View;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
@@ -143,6 +144,23 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         });
         return moduleDependency;
     }
+    @Override
+    public Dependency compileView(Project project) {
+        final ProjectDependency projectDependency = (ProjectDependency) getDependencyHandler().create(project);
+        return compileView(projectDependency);
+    }
+
+    @Override
+    public Dependency compileView(ModuleDependency dependency) {
+        dependency.attributes(attrs -> attrs.attribute(View.VIEW_ATTRIBUTE, getObjectFactory().named(View.class, View.JAVA_COMPILE)));
+        return dependency;
+    }
+
+//    @Override
+//    public Dependency runtimeView(ModuleDependency dependency) {
+//        dependency.attributes(attrs -> attrs.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, Usage.JAVA_RUNTIME)));
+//        return dependency;
+//    }
 
     private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
         if (dependency instanceof ProviderConvertible<?>) {

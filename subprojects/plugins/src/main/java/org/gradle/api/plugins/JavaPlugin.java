@@ -296,10 +296,11 @@ public class JavaPlugin implements Plugin<Project> {
 
         SourceSet mainSourceSet = javaExtension.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
         configureSourceSets(project, javaExtension, buildOutputCleanupRegistry, mainSourceSet);
-        configureConfigurations(project, javaExtension, mainSourceSet);
+
+        PublishArtifact jarArtifact = configureArchives(project, mainSourceSet);
+        configureConfigurations(project, javaExtension, mainSourceSet, jarArtifact);
 
         configureJavadocTask(project, javaExtension);
-        configureArchivesAndComponent(project, javaExtension);
         configureBuild(project);
     }
 
@@ -308,7 +309,7 @@ public class JavaPlugin implements Plugin<Project> {
 
         // The built-in test suite must be configured after the main source set is available due to some
         // special handling in the IntelliJ model builder
-        configureBuiltInTest(project, project.getExtensions().getByType(TestingExtension.class), pluginExtension, mainSourceSet);
+        configureBuiltInTest(project, project.getExtensions().getByType(TestingExtension.class));
 
         // Register the project's source set output directories
         sourceSets.all(sourceSet ->
@@ -316,16 +317,14 @@ public class JavaPlugin implements Plugin<Project> {
         );
     }
 
-    private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java, SourceSet mainSourceSet) {
+    private void configureBuiltInTest(Project project, TestingExtension testing) {
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
             final FileCollection testSourceSetOutput = suite.getSources().getOutput();
 
-            suite.getSources().setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, project.getConfigurations().getByName(suite.getSources().getCompileClasspathConfigurationName())));
-            suite.getSources().setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, project.getConfigurations().getByName(suite.getSources().getRuntimeClasspathConfigurationName())));
+            suite.getSources().setCompileClasspath(project.getObjects().fileCollection().from(project.getConfigurations().getByName(suite.getSources().getCompileClasspathConfigurationName())));
+            suite.getSources().setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, project.getConfigurations().getByName(suite.getSources().getRuntimeClasspathConfigurationName())));
 
-            project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()).extendsFrom(project.getConfigurations().getByName(mainSourceSet.getImplementationConfigurationName()));
-            project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()).extendsFrom(project.getConfigurations().getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
+            suite.getDependencies().implementation(suite.getDependencies().compileView(project));
         });
 
         // Force the realization of this test suite, targets and task
@@ -334,40 +333,29 @@ public class JavaPlugin implements Plugin<Project> {
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 
-    private void configureArchivesAndComponent(Project project, final JavaPluginExtension pluginExtension) {
-        PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginExtension), ((ProjectInternal) project).getFileResolver());
-
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
-        Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
-
-        Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
-        addJar(apiElementConfiguration, jarArtifact);
-        addRuntimeVariants(project.getConfigurations(), jarArtifact, mainSourceSetOf(pluginExtension), processResources);
-
-        registerSoftwareComponents(project);
-    }
-
-    private static TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginExtension pluginExtension) {
-        TaskProvider<Jar> jarTaskProvider = project.getTasks().register(JAR_TASK_NAME, Jar.class);
-        jarTaskProvider.configure(jar -> {
+    private PublishArtifact configureArchives(Project project, final SourceSet mainSourceSet) {
+        TaskProvider<Jar> jarTaskProvider = project.getTasks().register(JAR_TASK_NAME, Jar.class, jar -> {
             jar.setDescription("Assembles a jar archive containing the main classes.");
             jar.setGroup(BasePlugin.BUILD_GROUP);
-            jar.from(mainSourceSetOf(pluginExtension).getOutput());
+            jar.from(mainSourceSet.getOutput());
         });
 
-        /* Unless there are other concerns, we'd prefer to run jar tasks prior to test tasks, as this might offer a small performance improvement
-           for common usage.  In practice, running test tasks tends to take longer than building a jar; especially as a project matures. If tasks
-            in downstream projects require the jar from this project, and the jar and test tasks in this project are available to be run in either order,
-            running jar first so that other projects can continue executing tasks in parallel while this project runs its tests could be an improvement.
-            However, while we want to prioritize cross-project dependencies to maximize parallelism if possible, we don't want to add an explicit
-            dependsOn() relationship between the jar task and the test task, so that any projects which need to run test tasks first will not need modification.
+        /*
+         * Unless there are other concerns, we'd prefer to run jar tasks prior to test tasks, as this might offer a small performance improvement
+         * for common usage.  In practice, running test tasks tends to take longer than building a jar; especially as a project matures. If tasks
+         * in downstream projects require the jar from this project, and the jar and test tasks in this project are available to be run in either order,
+         * running jar first so that other projects can continue executing tasks in parallel while this project runs its tests could be an improvement.
+         * However, while we want to prioritize cross-project dependencies to maximize parallelism if possible, we don't want to add an explicit
+         * dependsOn() relationship between the jar task and the test task, so that any projects which need to run test tasks first will not need modification.
          */
         project.getTasks().withType(Test.class).configureEach(test -> {
             // Attempt to avoid configuring jar task if possible, it will likely be configured anyway the by apiElements variant
             test.shouldRunAfter(project.getTasks().withType(Jar.class));
         });
 
-        return jarTaskProvider;
+        PublishArtifact jarArtifact = new LazyPublishArtifact(jarTaskProvider, ((ProjectInternal) project).getFileResolver());
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
+        return jarArtifact;
     }
 
     private static SourceSet mainSourceSetOf(JavaPluginExtension pluginExtension) {
@@ -383,15 +371,6 @@ public class JavaPlugin implements Plugin<Project> {
         configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension);
     }
 
-    private void registerSoftwareComponents(Project project) {
-        ConfigurationContainer configurations = project.getConfigurations();
-        // the main "Java" component
-        AdhocComponentWithVariants java = softwareComponentFactory.adhoc("java");
-        java.addVariantsFromConfiguration(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("compile", false));
-        java.addVariantsFromConfiguration(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("runtime", false));
-        project.getComponents().add(java);
-    }
-
     private static void addJar(Configuration configuration, PublishArtifact jarArtifact) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
@@ -400,16 +379,11 @@ public class JavaPlugin implements Plugin<Project> {
         publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(ConfigurationContainer configurations, PublishArtifact jarArtifact, final SourceSet sourceSet, final Provider<ProcessResources> processResources) {
-        ConfigurationPublications publications = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getOutgoing();
-
-        // Configure an implicit variant
-        publications.getArtifacts().add(jarArtifact);
-        publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
+    private void configureRuntimeElementsVariant(Configuration configuration, final SourceSet sourceSet, final Provider<ProcessResources> processResources) {
+        jvmServices.configureClassesDirectoryVariant(sourceSet.getRuntimeElementsConfigurationName(), sourceSet);
 
         // Define some additional variants
-        jvmServices.configureClassesDirectoryVariant(sourceSet.getRuntimeElementsConfigurationName(), sourceSet);
-        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
+        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = configuration.getOutgoing().getVariants();
         ConfigurationVariantInternal resourcesVariant = (ConfigurationVariantInternal) runtimeVariants.create("resources");
         resourcesVariant.setDescription("Directories containing the project's assembled resource files for use at runtime.");
         resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
@@ -429,12 +403,20 @@ public class JavaPlugin implements Plugin<Project> {
             JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
-    private void configureConfigurations(Project project, JavaPluginExtension extension, SourceSet mainSourceSet) {
+    private void configureConfigurations(Project project, JavaPluginExtension extension, SourceSet mainSourceSet, PublishArtifact jarArtifact) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
+        Configuration compileOnlyConfiguration = configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME);
+
+        final DeprecatableConfiguration compileElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(COMPILE_ELEMENTS_CONFIGURATION_NAME,
+            builder -> builder.fromSourceSet(mainSourceSet)
+                .compileView()
+                .providesApi()
+                .withDescription("Elements of compile for main.")
+                .extendsFrom(implementationConfiguration, compileOnlyConfiguration));
 
         final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(mainSourceSet)
@@ -448,8 +430,24 @@ public class JavaPlugin implements Plugin<Project> {
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
 
+        compileElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
+
+        addJar(apiElementsConfiguration, jarArtifact);
+        addJar(compileElementsConfiguration, jarArtifact);
+        addJar(runtimeElementsConfiguration, jarArtifact);
+
+        jvmServices.configureClassesDirectoryVariant(compileElementsConfiguration.getName(), mainSourceSet);
+
+        Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
+        configureRuntimeElementsVariant(runtimeElementsConfiguration, mainSourceSet, processResources);
+
+        // the main "Java" component
+        AdhocComponentWithVariants java = softwareComponentFactory.adhoc("java");
+        java.addVariantsFromConfiguration(apiElementsConfiguration, new JavaConfigurationVariantMapping("compile", false));
+        java.addVariantsFromConfiguration(runtimeElementsConfiguration, new JavaConfigurationVariantMapping("runtime", false));
+        project.getComponents().add(java);
 
         createSourcesVariant(project, extension, mainSourceSet);
     }
