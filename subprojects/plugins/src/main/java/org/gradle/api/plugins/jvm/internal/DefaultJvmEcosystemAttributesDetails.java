@@ -59,6 +59,18 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
     }
 
     @Override
+    public JvmEcosystemAttributesDetails apiView() {
+        attributes.attribute(View.VIEW_ATTRIBUTE, objectFactory.named(View.class, View.JAVA_API));
+        return this;
+    }
+
+    @Override
+    public JvmEcosystemAttributesDetails runtimeView() {
+        attributes.attribute(View.VIEW_ATTRIBUTE, objectFactory.named(View.class, View.JAVA_RUNTIME));
+        return this;
+    }
+
+    @Override
     public JvmEcosystemAttributesDetails library() {
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         return this;

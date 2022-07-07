@@ -17,7 +17,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Named
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.attributes.View
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -110,9 +113,12 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
-        testImplementation.extendsFrom == toSet(implementation)
+        testImplementation.extendsFrom == [] as Set
         !testImplementation.visible
         testImplementation.transitive
+        ProjectDependency projDep = ((ProjectDependency)testImplementation.dependencies.iterator().next())
+        projDep.dependencyProject == project
+        ((Named)projDep.attributes.getAttribute(View.VIEW_ATTRIBUTE)).name == View.JAVA_COMPILE
 
         when:
         def testRuntimeOnly = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
@@ -122,7 +128,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !testRuntimeOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
-        testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
+        testRuntimeOnly.extendsFrom == [] as Set
 
         when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)

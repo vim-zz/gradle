@@ -22,4 +22,6 @@ public interface View extends Named {
     Attribute<View> VIEW_ATTRIBUTE = Attribute.of("org.gradle.view", View.class);
 
     String JAVA_COMPILE = "java-compile";
+    String JAVA_API = "java-api";
+    String JAVA_RUNTIME = "java-runtime";
 }

@@ -59,6 +59,9 @@ interface JvmEcosystemAttributesDetails {
 
     JvmEcosystemAttributesDetails compileView();
 
+    JvmEcosystemAttributesDetails apiView();
+    JvmEcosystemAttributesDetails runtimeView();
+
     /**
      * Provides or requires a component which dependencies are found
      * as independent components (typically through external dependencies)
