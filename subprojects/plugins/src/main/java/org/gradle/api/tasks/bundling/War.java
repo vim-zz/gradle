@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -57,20 +58,25 @@ public class War extends Jar {
     private final DefaultCopySpec webInf;
     private final DirectoryProperty webAppDirectory;
 
+    private Transformer<String, String> webInfRenamer;
+
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
         setMetadataCharset("UTF-8");
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
+        Transformer<String, String> webInfRenamer = createWebInfRenamer();
         webInf.into("classes", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
             return classpath != null ? classpath.filter(spec(File::isDirectory)) : Collections.<File>emptyList();
-        }));
+        })/*.rename(webInfRenamer)*/);
         webInf.into("lib", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
             return classpath != null ? classpath.filter(spec(File::isFile)) : Collections.<File>emptyList();
-        }));
+        })/*.rename(webInfRenamer)*/);
+
+        webInf.rename(webInfRenamer);
 
         CopySpecInternal renameSpec = webInf.addChild();
         renameSpec.into("");
@@ -195,5 +201,23 @@ public class War extends Jar {
     @Internal
     public DirectoryProperty getWebAppDirectory() {
         return webAppDirectory;
+    }
+
+    @Nullable
+    @Internal
+    public Transformer<String, String> getWebInfRenamer() {
+        return webInfRenamer;
+    }
+
+    public void setWebInfRenamer(@Nullable Transformer<String, String> webInfRenamer) {
+        this.webInfRenamer = webInfRenamer;
+    }
+
+    private Transformer<String, String> createWebInfRenamer() {
+        return name -> {
+            // delayed access to renamer to allow it being set during configuration
+            Transformer<String, String> renamer = getWebInfRenamer();
+            return renamer == null ? name : renamer.transform(name);
+        };
     }
 }
