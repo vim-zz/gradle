@@ -14,6 +14,34 @@
 
 [[plugins]]
 = Using Gradle Plugins
+//
+//  <!-- Facebook Meta Tags -->
+//  <meta property="og:url" content="https://docs.gradle.org/current/userguide/plugins.html">
+//  <meta property="og:type" content="website">
+//  <meta property="og:title" content="Using Gradle Plugins">
+//  <meta property="og:description" content="undefined">
+//  <meta property="og:image" content="">
+//
+//  <!-- Twitter Meta Tags -->
+//  <meta name="twitter:card" content="summary_large_image">
+//  <meta property="twitter:domain" content="docs.gradle.org">
+//  <meta property="twitter:url" content="https://docs.gradle.org/current/userguide/plugins.html">
+//  <meta name="twitter:title" content="Using Gradle Plugins">
+//  <meta name="twitter:description" content="undefined">
+//  <meta name="twitter:image" content="">
+
+:meta-property-og_url: {docsUrl}/{gradleVersion}/userguide/{docname}.html
+:meta-property-og_type: article
+:meta-property-og_title: {title}
+:meta-property-og_image: {website}/images/gradle-seo-meta.png
+
+:meta-name-twitter_card: summary
+:meta-name-twitter_site: @gradle
+:meta-name-twitter_creator: @gradle
+:meta-name-twitter_title: {title}
+:meta-name-twitter_description: {description}
+:meta-name-twitter_url: {docsUrl}/{gradleVersion}/userguide/{docname}.html
+:meta-name-twitter_image: {website}/images/gradle-seo-meta.png
 
 Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g. link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.
 
