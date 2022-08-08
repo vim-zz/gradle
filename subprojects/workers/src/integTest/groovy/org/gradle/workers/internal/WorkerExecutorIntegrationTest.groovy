@@ -694,6 +694,105 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
+    def "workers which use project outputs do not break clean"() {
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'test.worker-running-plugin'
+            }
+        """
+
+        file("settings.gradle") << "includeBuild 'included'"
+        file("included/settings.gradle") << "rootProject.name = 'included'"
+        file("included/build.gradle") << """
+            plugins {
+                id 'java-gradle-plugin'
+            }
+
+            gradlePlugin {
+                plugins {
+                    register("workerRunningPlugin") {
+                        id = "test.worker-running-plugin"
+                        implementationClass = "com.plugin.WorkerRunningPlugin"
+                    }
+                }
+            }
+        """
+        file("included/src/main/java/com/plugin/WorkerRunningPlugin.java") << """
+            package com.plugin;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.NamedDomainObjectProvider;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.Configuration;
+            import org.gradle.api.artifacts.ConfigurationContainer;
+            import org.gradle.api.file.FileCollection;
+            import org.gradle.api.tasks.Classpath;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.workers.WorkerExecutor;
+            import org.gradle.workers.WorkAction;
+            import org.gradle.workers.WorkParameters;
+            import org.gradle.workers.WorkQueue;
+
+            import javax.inject.Inject;
+
+            public class WorkerRunningPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    ConfigurationContainer configurations = project.getConfigurations();
+                    NamedDomainObjectProvider<Configuration> bucket = configurations.register("bucket", config -> {
+                        config.setCanBeConsumed(false);
+                        config.setCanBeResolved(false);
+                    });
+
+                    NamedDomainObjectProvider<Configuration> resolvable = configurations.register("resolvable", config -> {
+                        config.setCanBeConsumed(false);
+                        config.setCanBeResolved(true);
+                        config.extendsFrom(bucket.get());
+                        config.getDependencies().add(project.getDependencies().create(project));
+                    });
+
+                    project.getTasks().register("runAction", ActionRunningTask.class, task -> {
+                        task.dependsOn(resolvable);
+                    });
+                }
+
+                public static abstract class ActionRunningTask extends DefaultTask {
+                    @Inject
+                    public abstract WorkerExecutor getWorkerExecutor();
+
+                    @TaskAction
+                    public void execute() {
+                        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+                            spec.getClasspath().from(getProject().getConfigurations().getByName("resolvable"));
+                        });
+                        workQueue.submit(TestAction.class, x -> {});
+                    }
+                }
+
+                public static abstract class TestAction implements WorkAction<WorkParameters.None> {
+                    @Override
+                    public void execute() {
+                        // Make the ClassLoader "dirty" by trying to load something from it
+                        Thread.currentThread().getContextClassLoader().getResource("abc");
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("runAction", "--info")
+
+        then:
+        outputContains("Started Gradle worker daemon")
+        // Make sure we actually created a jar to put on the worker classpath
+        result.assertTaskExecuted(':jar')
+
+        // Now, while the worker is still running, clean the project build files.
+        expect:
+        succeeds("clean")
+    }
+
     void withParameterClassReferencingClassInAnotherPackage() {
         file("buildSrc/src/main/java/org/gradle/another/Bar.java").text = """
             package org.gradle.another;
