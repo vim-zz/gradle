@@ -98,12 +98,16 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
     private BitSet remaining;
 
-    <E extends T> MultipleCandidateMatcher(AttributeSelectionSchema schema, List<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private <E extends T> MultipleCandidateMatcher(AttributeSelectionSchema schema, List<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
         this.schema = schema;
         this.candidates = candidates;
         this.requested = requested;
         this.explanationBuilder = explanationBuilder;
 
+        candidateAttributeSets = new ImmutableAttributes[candidates.size()];
+        for (int i = 0; i < candidates.size(); i++) {
+            candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
+        }
         this.requestedAttributes = requested.keySet().asList();
         this.requestedAttributeValues = getRequestedValues(requestedAttributes, requested);
 
@@ -115,6 +119,11 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     public List<T> getMatches() {
+    public static <T extends HasAttributes, E extends T> List<T> getMatches(AttributeSelectionSchema schema, Collection<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+        return new MultipleCandidateMatcher<T>(schema, candidates, requested, explanationBuilder).getMatches();
+    }
+
+    private List<T> getMatches() {
         findCompatibleCandidates();
         if (compatible.cardinality() <= 1) {
             return getCandidates(compatible);
@@ -204,14 +213,17 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             int lengthOfOtherMatch = 0;
             for (int a = 0; a < requestedAttributes.size(); a++) {
                 if (getCandidateValue(c, a) == null) {
+                    // Candidate is missing this attribute.
                     continue;
                 }
                 lengthOfOtherMatch++;
                 if (getCandidateValue(candidateWithLongestMatch, a) == null) {
+                    // This candidate has the value but the longest does not. Thus, longest is not a superset.
                     return false;
                 }
             }
             if (lengthOfOtherMatch == lengthOfLongestMatch) {
+                // There are multiple candidates with the same match length. Thus, there is no longest.
                 return false;
             }
         }
