@@ -43,7 +43,7 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
 
     private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new HashMap<>();
 
-    private DefaultAttributeSelectionSchema(AttributesSchemaInternal consumerSchema, AttributesSchemaInternal producerSchema) {
+    public DefaultAttributeSelectionSchema(AttributesSchemaInternal consumerSchema, AttributesSchemaInternal producerSchema) {
         this.consumerSchema = consumerSchema;
         this.producerSchema = producerSchema;
     }
@@ -129,12 +129,8 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
         // It's almost always the same attribute sets which are compared, so in order to avoid a lot of memory allocation
         // during computation of the intersection, we cache the result here.
         ExtraAttributesEntry entry = new ExtraAttributesEntry(candidateAttributeSets, requested);
-        Attribute<?>[] attributes = extraAttributesCache.get(entry);
-        if (attributes == null) {
-            attributes = AttributeSelectionUtils.collectExtraAttributes(this, candidateAttributeSets, requested);
-            extraAttributesCache.put(entry, attributes);
-        }
-        return attributes;
+        return extraAttributesCache.computeIfAbsent(entry, key ->
+            AttributeSelectionUtils.collectExtraAttributes(this, candidateAttributeSets, requested));
     }
 
     @Override

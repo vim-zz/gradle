@@ -22,6 +22,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Cast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +136,7 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
         }
 
         ImmutableAttributes requestedAttributes = requested.asImmutable();
-        List<E> candidateList = (candidates instanceof List) ? (List<E>) candidates : ImmutableList.copyOf(candidates);
+        List<? extends T> candidateList = (candidates instanceof List) ? Cast.uncheckedCast(candidates) : ImmutableList.copyOf(candidates);
         if (!explanationBuilder.canSkipExplanation()) {
             return MultipleCandidateMatcher.getMatches(schema, candidateList, requestedAttributes, explanationBuilder);
         }

@@ -21,8 +21,8 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.component.model.DefaultAttributeSelectionSchema;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
