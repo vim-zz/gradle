@@ -103,11 +103,6 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         this.candidates = candidates;
         this.requested = requested;
         this.explanationBuilder = explanationBuilder;
-
-        candidateAttributeSets = new ImmutableAttributes[candidates.size()];
-        for (int i = 0; i < candidates.size(); i++) {
-            candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
-        }
         this.requestedAttributes = requested.keySet().asList();
         this.requestedAttributeValues = getRequestedValues(requestedAttributes, requested);
 
@@ -118,8 +113,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         compatible.set(0, candidates.size());
     }
 
-    public List<T> getMatches() {
-    public static <T extends HasAttributes, E extends T> List<T> getMatches(AttributeSelectionSchema schema, Collection<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    public static <T extends HasAttributes, E extends T> List<T> getMatches(AttributeSelectionSchema schema, List<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
         return new MultipleCandidateMatcher<T>(schema, candidates, requested, explanationBuilder).getMatches();
     }
 
