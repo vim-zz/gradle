@@ -41,11 +41,18 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
     private final AttributesSchemaInternal consumerSchema;
     private final AttributesSchemaInternal producerSchema;
 
-    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new HashMap<>();
+    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache;
+
+    public DefaultAttributeSelectionSchema(AttributesSchemaInternal consumerSchema, AttributesSchemaInternal producerSchema, Map<ExtraAttributesEntry, Attribute<?>[]> cache) {
+        this.consumerSchema = consumerSchema;
+        this.producerSchema = producerSchema;
+        this.extraAttributesCache = cache;
+    }
 
     public DefaultAttributeSelectionSchema(AttributesSchemaInternal consumerSchema, AttributesSchemaInternal producerSchema) {
         this.consumerSchema = consumerSchema;
         this.producerSchema = producerSchema;
+        this.extraAttributesCache = new HashMap<>();
     }
 
     @Override
@@ -190,7 +197,7 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
 
     /**
      * A cache entry key, leveraging _identity_ as the key, because we do interning. * This is a performance optimization. */
-    private static class ExtraAttributesEntry {
+    public static class ExtraAttributesEntry {
         private final ImmutableAttributes[] candidateAttributeSets;
         private final ImmutableAttributes requestedAttributes;
         private final int hashCode;
