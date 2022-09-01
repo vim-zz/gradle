@@ -34,7 +34,6 @@ package org.gradle.tooling.internal.protocol;
  * <li>For backwards compatibility, implementations should implement {@link InternalCancellableConnection#run(InternalBuildAction, InternalCancellationToken, BuildParameters)}.
  * This is used by all consumer versions from 2.1-rc-1 to 4.3.
  * </li>
- * <li>For backwards compatibility, implementations should implement {@link InternalBuildActionExecutor}. This is used by all consumer versions from 1.8-rc-1 to 2.0.
  * <li>For backwards compatibility, implementations should implement {@link ModelBuilder}. This is used by all consumer versions from 1.6-rc-1 to 2.0.
  * <li>For backwards compatibility, implementations should implement {@link BuildActionRunner}. This is used by consumer versions from 1.2-rc-1 to 1.5.
  * <li>For backwards compatibility, implementations should implement {@link InternalConnection}. This is used by consumer versions from 1.0-milestone-8 to 1.1.

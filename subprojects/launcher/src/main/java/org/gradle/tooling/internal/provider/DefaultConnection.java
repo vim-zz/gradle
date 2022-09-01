@@ -66,9 +66,18 @@ import java.io.File;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class DefaultConnection implements ConnectionVersion4, org.gradle.tooling.internal.protocol.InternalConnection, org.gradle.tooling.internal.protocol.BuildActionRunner,
-    ConfigurableConnection, org.gradle.tooling.internal.protocol.ModelBuilder, org.gradle.tooling.internal.protocol.InternalBuildActionExecutor, InternalCancellableConnection, InternalParameterAcceptingConnection,
-    StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection, InternalInvalidatableVirtualFileSystemConnection, InternalStopWhenIdleConnection {
+public class DefaultConnection implements ConnectionVersion4,
+                                          org.gradle.tooling.internal.protocol.InternalConnection,
+                                          ConfigurableConnection,
+                                          org.gradle.tooling.internal.protocol.ModelBuilder,
+                                          org.gradle.tooling.internal.protocol.InternalBuildActionExecutor,
+                                          InternalCancellableConnection,
+                                          InternalParameterAcceptingConnection,
+                                          StoppableConnection,
+                                          InternalTestExecutionConnection,
+                                          InternalPhasedActionConnection,
+                                          InternalInvalidatableVirtualFileSystemConnection,
+                                          InternalStopWhenIdleConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private static final String UNSUPPORTED_MESSAGE = "Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
@@ -172,15 +181,6 @@ public class DefaultConnection implements ConnectionVersion4, org.gradle.tooling
     @Override
     @Deprecated
     public <T> T getTheModel(Class<T> type, org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1 parameters) {
-        throw unsupportedConnectionException();
-    }
-
-    /**
-     * This is used by consumers 1.2-rc-1 to 1.5
-     */
-    @Override
-    @Deprecated
-    public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
         throw unsupportedConnectionException();
     }
 
