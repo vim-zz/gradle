@@ -34,13 +34,15 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
     private final TaskProvider<Test> testTask;
 
     @Inject
-    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks) {
+    public DefaultJvmTestSuiteTarget(String name, String suiteName, TaskContainer tasks) {
         this.name = name;
 
         // Might not always want Test type here?
         this.testTask = tasks.register(name, Test.class, t -> {
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+            t.getSuiteName().set(suiteName);
+            t.getTargetName().set(name);
         });
     }
 

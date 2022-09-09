@@ -37,11 +37,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -88,14 +90,40 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final List<String> testWorkerImplementationClasses;
         final List<String> testWorkerImplementationModules;
         if (testFramework.getUseImplementationDependencies()) {
-            testWorkerImplementationClasses = testFramework.getTestWorkerImplementationClasses();
-            testWorkerImplementationModules = testFramework.getTestWorkerImplementationModules();
+            Set<String> providedModules = testExecutionSpec.getProvidedTestImplementationModules().getOrElse(Collections.<String>emptySet());
 
-            // TODO: Once test suites are de-incubated, we should deprecate the behavior of creating
-            // Test tasks without an associated test suite. This way, we always know that test framework
-            // dependencies are properly managed via dependency-management and that we no longer need
-            // to load these dependencies from the Gradle distribution. When this is complete,
-            // we can start nagging the user here or somewhere else more relevant.
+            testWorkerImplementationClasses = new ArrayList<String>();
+            testWorkerImplementationModules = new ArrayList<String>();
+
+            for (String module : testFramework.getTestWorkerImplementationClasses()) {
+                if (!providedModules.contains(module)) {
+                    testWorkerImplementationClasses.add(module);
+                }
+            }
+
+            for (String module : testFramework.getTestWorkerImplementationModules()) {
+                if (!providedModules.contains(module)) {
+                    testWorkerImplementationModules.add(module);
+                }
+            }
+
+            // Test suites automatically declare the required dependencies on the test's configurations,
+            // but for users who are not interacting with the tests via test suites, these dependenices
+            // are not automatically added. In this case, we load the dependencies from the distribution.
+            // However, we are deprecating this behavior. Any user who is not using test suites
+            // must declare their test dependencies explicitly and should not rely on Gradle to load
+            // these dependencies for them.
+
+            // After we de-incubate test suites, we can push users that direction and remove the
+            // need for loading modules from the distribution. We might also want to deprecate allowing
+            // users to create standalone, non-test-suite-managed Test tasks, so that we can be sure
+            // all test framework implementation dependencies are properly controlled with test suites.
+
+            // TODO: Properly fill-out this deprecation.
+            DeprecationLogger.deprecate("Executing test tasks without declaring their test frame dependencies")
+                .willBecomeAnErrorInGradle8()
+                .undocumented()
+                .nagUser();
         } else {
             testWorkerImplementationClasses = Collections.emptyList();
             testWorkerImplementationModules = Collections.emptyList();

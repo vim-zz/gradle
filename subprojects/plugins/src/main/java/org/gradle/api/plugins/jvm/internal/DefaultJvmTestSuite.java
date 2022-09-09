@@ -17,14 +17,18 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -44,6 +48,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.testing.base.TestingExtension;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -52,6 +58,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
@@ -66,12 +76,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             this.version = version;
         }
 
-        public String getDefaultVersionNotation() {
-            return getNotationForVersion(version);
+        public Module withVersion(String newVersion) {
+            return new Module(group, name, newVersion);
         }
 
-        public String getNotationForVersion(@Nullable String specified) {
-            return group + ":" + name + (specified != null ?  ":" + specified : "");
+        public String getNotation() {
+            return group + ":" + name + (version != null ?  ":" + version : "");
         }
     }
 
@@ -111,14 +121,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             return module.version;
         }
 
-        public List<Dependency> getDependencies(String version, DependencyFactory dependencyFactory) {
-            List<Dependency> deps = new ArrayList<>(1 + dependencies.size());
-            deps.add(dependencyFactory.create(module.getNotationForVersion(version)));
-            for (Module dep : dependencies) {
-                // TODO: Should we separate these between implementation and runtime dependencies?
-                // Do we need junit-platform-launcher on the compile classpath or only during runtime?
-                deps.add(dependencyFactory.create(dep.getDefaultVersionNotation()));
-            }
+        public List<Module> getDependencies(String version) {
+            List<Module> deps = new ArrayList<>(1 + dependencies.size());
+            deps.add(module.withVersion(version));
+            // TODO: Should we separate these between implementation and runtime dependencies?
+            // Do we need junit-platform-launcher on the compile classpath or only during runtime?
+            deps.addAll(dependencies);
             return deps;
         }
     }
@@ -136,8 +144,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             return framework;
         }
 
-        public List<Dependency> getDependencies(DependencyFactory dependencyFactory) {
-            return framework.getDependencies(version, dependencyFactory);
+        public List<Module> getDependencies() {
+            return framework.getDependencies(version);
+        }
+
+        public List<ExternalModuleDependency> getDependencies(DependencyFactory dependencyFactory) {
+            return getDependencies().stream().map(it -> dependencyFactory.create(it.getNotation())).collect(Collectors.toList());
         }
     }
 
@@ -162,7 +174,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+        this.targets.registerFactory(JvmTestSuiteTarget.class, targetName ->
+            getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName, getName()));
 
         this.dependencies = getObjectFactory().newInstance(
             DefaultJvmComponentDependencies.class,
@@ -207,6 +220,63 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                     // instead of including it in testImplementation.
                     // TODO: In 8.0 should we switch getVersionedTestingFramework() to use JUNIT4 as a convention?
                 }).orElse(new DefaultProvider<>(() -> frameworkLookup.computeIfAbsent(null, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true)))));
+
+                // Ideally the Test would calculate this value, but it doesn't have access to `JvmTestSuite` during compilation.
+                // So, we inject the value externally.
+                task.getProvidedFrameworkDependencyModules().set(getProvidedModules(configurations, getVersionedTestingFramework()));
+            });
+        });
+    }
+
+    /**
+     * A mapping from a module name to itself and the module names or its transitive dependencies.
+     * This mapping is not complete (obviously). This map only includes the mappings for modules which Gradle
+     * would load from its distribution in the case where the key is missing from the test's runtime classpath.
+     */
+    private static final ImmutableMap<String, List<String>> MODULE_NAME_TO_TRANSITIVE_MODULE_NAMES = ImmutableMap.of(
+        "junit-platform-launcher", ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons"),
+        "junit", ImmutableList.of("junit")
+    );
+
+    /**
+     * Returns a provider which scans the source set's runtime classpath to determine which Gradle distribution modules from
+     * the given {@code testFrameworkProvider} are included in the classpath -- regardless of version. This information
+     * is used by the test framework infrastructure to determine if Gradle needs to load any additional modules
+     * need to be loaded from the Gradle distribution when constructing the test worker.
+     * <p>
+     * Eventually, this should be removed, as we will make it required that users use test suites, in which case their
+     * test implementation dependencies are managed automatically.
+     * <p>
+     * Resolving this provider causes the runtimeClasspath configuration to be resolved.
+     */
+    private Provider<Set<String>> getProvidedModules(ConfigurationContainer configurations, Provider<VersionedTestingFramework> testFrameworkProvider) {
+        return testFrameworkProvider.map(testFramework -> {
+            Configuration runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
+            Set<ResolvedComponentResult> resolved = runtimeClasspath.getIncoming().getResolutionResult().getAllComponents();
+
+            Stream<Module> providedModules = testFramework.getDependencies().stream().filter(required ->
+                resolved.stream().anyMatch(resolvedDep -> {
+                    String name = resolvedDep.getModuleVersion().getName();
+                    String group = resolvedDep.getModuleVersion().getGroup();
+                    return required.group.equals(group) && required.name.equals(name);
+                })
+            );
+
+            return providedModules.map(x -> MODULE_NAME_TO_TRANSITIVE_MODULE_NAMES.get(x.name)).filter(Objects::nonNull).flatMap(List::stream).collect(Collectors.toSet());
+        });
+    }
+
+    private static Provider<JvmTestSuite> getSuite(Test test) {
+        return test.getSuiteName().flatMap(suiteName -> {
+            TestingExtension testing = test.getProject().getExtensions().findByType(TestingExtension.class);
+            if (testing == null) {
+                return Providers.notDefined();
+            }
+            return testing.getSuites().named(suiteName).map(suite -> {
+                if (suite instanceof JvmTestSuite) {
+                    return (JvmTestSuite) suite;
+                }
+                return null;
             });
         });
     }
@@ -230,7 +300,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         // A concrete example of this occurs when using the Kotlin Gradle Plugin. See the function `configureKotlinTestDependency` added
         // at the below linked commit. This resolves the dependencies before configuration-time is over, and would break an implementation
-        // where the below line is instead located in the constructor.
+        // where the below line is instead located in the constructor. See `KotlinLibraryInitIntegrationTest` for a test
+        // which exercises both this code and the relevant code in the Kotlin plugin.
         // See: https://github.com/JetBrains/kotlin/commit/4a172286217a1a7d4e7a7f0eb6a0bc53ebf56515
         if (!attachedDependencies) {
             this.dependencies.getImplementation().bundle(getVersionedTestingFramework().map(vtf -> vtf.getDependencies(dependencyFactory)));
@@ -249,13 +320,17 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Inject
     public abstract ProviderFactory getProviderFactory();
 
+    @Override
     public SourceSet getSources() {
         return sourceSet;
     }
+
+    @Override
     public void sources(Action<? super SourceSet> configuration) {
         configuration.execute(getSources());
     }
 
+    @Override
     public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets() {
         return targets;
     }

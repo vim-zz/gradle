@@ -45,6 +45,7 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -172,6 +173,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final PatternFilterable patternSet;
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
+    private final Property<String> suiteName;
+    private final Property<String> targetName;
     private final Property<TestFramework> testFramework;
     private boolean userHasConfiguredTestFramework;
     private boolean optionsAccessed;
@@ -180,6 +183,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
+
+    private final SetProperty<String> providedFrameworkDependencyModules;
 
     public Test() {
         patternSet = getPatternSetFactory().create();
@@ -197,7 +202,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
+        this.suiteName = getObjectFactory().property(String.class);
+        this.targetName = getObjectFactory().property(String.class);
         testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        this.providedFrameworkDependencyModules = getObjectFactory().setProperty(String.class).convention(Collections.<String>emptySet());
     }
 
     @Inject
@@ -634,6 +642,20 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
+     * The java module names which are provided as part of the test runtime via dependency management.
+     * Any modules defined by the {@link TestFramework} which are not included here will be loaded
+     * from the Gradle distribution when launching the test worker.
+     * <p>
+     * <strong>For internal use only. You probably don't wanna mess with this. This method will
+     * be removed in a future version of this task.</strong>
+     */
+    @Internal
+    @Incubating
+    public SetProperty<String> getProvidedFrameworkDependencyModules() {
+        return providedFrameworkDependencyModules;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @since 4.4
@@ -647,7 +669,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), providedFrameworkDependencyModules);
     }
 
     private void validateToolchainConfiguration() {
@@ -898,6 +920,24 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     public Test setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);
         return this;
+    }
+
+    /**
+     * Get the name of the test suite this task belongs to. Non-present if this task does not belong to a test suite.
+     */
+    @Internal
+    @Incubating
+    public Property<String> getSuiteName() {
+        return suiteName;
+    }
+
+    /**
+     * Get the name of the test suite target this task belongs to. Non-present if this task does not belong to a test suite.
+     */
+    @Internal
+    @Incubating
+    public Property<String> getTargetName() {
+        return targetName;
     }
 
     /**
