@@ -27,7 +27,7 @@ repositories {
 
 // tag::multi-configure[]
 testing {
-    suites { 
+    suites {
         configureEach { // <1>
             useJUnitJupiter()
             dependencies { // <2>
@@ -52,11 +52,11 @@ tasks.register('checkDependencies') {
         configurations.testRuntimeClasspath
     )
     doLast {
-        assert configurations.testRuntimeClasspath.files.size() == 12
+        assert configurations.testRuntimeClasspath.files.size() == 13
         assert configurations.testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.integrationTestRuntimeClasspath.files.size() == 12
+        assert configurations.integrationTestRuntimeClasspath.files.size() == 13
         assert configurations.integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.functionalTestRuntimeClasspath.files.size() == 13
+        assert configurations.functionalTestRuntimeClasspath.files.size() == 14
         assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
         assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
     }
