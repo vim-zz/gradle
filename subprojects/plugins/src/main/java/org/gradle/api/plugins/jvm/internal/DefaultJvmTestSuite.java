@@ -192,6 +192,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
             // and add dependencies automatically.
             getVersionedTestingFramework().convention((VersionedTestingFramework) null);
+
+            // Add a junit `implementation` dependency. Ideally, we'd do this with `setFrameworkTo`, but that method
+            // is broken and once you call it once any further calls won't add the proper dependencies automatically.
+            // So, we just add the dependency no matter what. Even if you go and change it to JUnit Jupiter or something.
+            getDependencies().getImplementation().bundle(new VersionedTestingFramework(
+                TestingFramework.JUNIT4, TestingFramework.JUNIT4.getDefaultVersion()).getDependencies(dependencyFactory));
         }
 
         addDefaultTestTarget();

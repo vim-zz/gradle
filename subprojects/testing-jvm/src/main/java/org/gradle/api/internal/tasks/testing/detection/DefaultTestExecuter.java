@@ -120,7 +120,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             // all test framework implementation dependencies are properly controlled with test suites.
 
             // TODO: Properly fill-out this deprecation.
-            DeprecationLogger.deprecate("Executing test tasks without declaring their test frame dependencies")
+            DeprecationLogger.deprecate("Executing test tasks without declaring their test framework dependencies")
                 .willBecomeAnErrorInGradle8()
                 .undocumented()
                 .nagUser();
