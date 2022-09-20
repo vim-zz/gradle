@@ -84,6 +84,10 @@ public class VariantMetadataAdapter implements VariantMetadata {
 
     @Override
     public AttributeContainer getAttributes() {
+        // TODO: This seems really wrong. This variant metadata adapter is supposed to adapt the metadata for a single variant.
+        //  However, when somebody asks for the attributes for this variant, we return the attributes for the entire component.
+        //  This means whenever somebody modifies the attributes for a single variant, they are actually modifying the attributes
+        //  for every variant. This is definitely not what we want here.
         return metadata.getAttributes();
     }
 
