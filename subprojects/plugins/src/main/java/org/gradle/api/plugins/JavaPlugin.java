@@ -376,13 +376,18 @@ public class JavaPlugin implements Plugin<Project> {
         return runtimeElementsConfiguration;
     }
 
+    public static final boolean DEFINE_COMPILE_ELEMENTS = true;
+
     private Configuration createApiElements(SourceSet mainSourceSet, PublishArtifact jarArtifact) {
         final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
-        apiElementsConfiguration.getAttributes().attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_API));
+
+        if (DEFINE_COMPILE_ELEMENTS) {
+            apiElementsConfiguration.getAttributes().attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_API));
+        }
 
         // Configure variants
         addJarArtifactToConfiguration(apiElementsConfiguration, jarArtifact);
@@ -433,7 +438,10 @@ public class JavaPlugin implements Plugin<Project> {
         final Configuration runtimeElementsConfiguration = createRuntimeElements(project, mainSourceSet, jarArtifact);
         final Configuration apiElementsConfiguration = createApiElements(mainSourceSet, jarArtifact);
         createSourceElements(project, mainSourceSet);
-        createCompileElements(project, mainSourceSet, jarArtifact);
+
+        if (DEFINE_COMPILE_ELEMENTS) {
+            createCompileElements(project, mainSourceSet, jarArtifact);
+        }
 
         // Register the main "Java" component
         AdhocComponentWithVariants java = softwareComponentFactory.adhoc("java");
