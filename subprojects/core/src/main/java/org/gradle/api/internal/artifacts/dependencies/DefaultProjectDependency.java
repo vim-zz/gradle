@@ -74,6 +74,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public Configuration findProjectConfiguration() {
+        assert false;
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
