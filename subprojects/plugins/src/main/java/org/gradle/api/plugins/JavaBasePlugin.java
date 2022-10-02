@@ -30,6 +30,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -150,7 +151,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
             ConfigurationContainer configurations = project.getConfigurations();
 
-            defineConfigurationsForSourceSet(sourceSet, configurations);
+            defineConfigurationsForSourceSet(sourceSet, (ConfigurationContainerInternal)configurations);
             definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
             createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
@@ -221,7 +222,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
 
-    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
+    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainerInternal configurations) {
         String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
         String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
         String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
@@ -230,16 +231,10 @@ public class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        Configuration implementationConfiguration = configurations.maybeCreate(implementationConfigurationName);
-        implementationConfiguration.setVisible(false);
+        Configuration implementationConfiguration = configurations.createBucket(implementationConfigurationName);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
-        implementationConfiguration.setCanBeConsumed(false);
-        implementationConfiguration.setCanBeResolved(false);
 
-        DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileOnlyConfigurationName);
-        compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.setCanBeConsumed(false);
-        compileOnlyConfiguration.setCanBeResolved(false);
+        DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.createBucket(compileOnlyConfigurationName);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
         ConfigurationInternal compileClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(compileClasspathConfigurationName);
@@ -258,10 +253,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
-        runtimeOnlyConfiguration.setVisible(false);
-        runtimeOnlyConfiguration.setCanBeConsumed(false);
-        runtimeOnlyConfiguration.setCanBeResolved(false);
+        Configuration runtimeOnlyConfiguration = configurations.createBucket(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
         ConfigurationInternal runtimeClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(runtimeClasspathConfigurationName);

@@ -135,6 +135,14 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder);
     }
 
+    @Override
+    public Configuration createBucket(String name) {
+        // TODO: Don't allow duplicates
+        Configuration bucket = defaultConfigurationFactory.createBucket(name, this);
+        add(bucket);
+        return bucket;
+    }
+
     /**
      * Build a formatted representation of all Configurations in this ConfigurationContainer. Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
      */

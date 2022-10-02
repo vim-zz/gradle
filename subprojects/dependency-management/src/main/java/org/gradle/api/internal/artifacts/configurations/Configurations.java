@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 public class Configurations {
@@ -39,6 +40,9 @@ public class Configurations {
     }
 
     public static Set<Capability> collectCapabilities(Configuration configuration, Set<Capability> out, Set<Configuration> visited) {
+        if (!configuration.isCanBeConsumed()) {
+            return Collections.emptySet();
+        }
         if (visited.add(configuration)) {
             out.addAll(configuration.getOutgoing().getCapabilities());
             for (Configuration parent : configuration.getExtendsFrom()) {

@@ -33,6 +33,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
@@ -214,11 +215,17 @@ public class JvmPluginsHelper {
         String description,
         boolean canBeConsumed
     ) {
-        Configuration configuration = container.maybeCreate(name);
+        final Configuration configuration;
+        if (!canBeConsumed) {
+            configuration = ((ConfigurationContainerInternal)container).createBucket(name);
+        } else {
+            configuration = container.maybeCreate(name);
+            configuration.setCanBeConsumed(canBeConsumed);
+        }
+
         configuration.setVisible(false);
         configuration.setDescription(description);
         configuration.setCanBeResolved(false);
-        configuration.setCanBeConsumed(canBeConsumed);
         return configuration;
     }
 

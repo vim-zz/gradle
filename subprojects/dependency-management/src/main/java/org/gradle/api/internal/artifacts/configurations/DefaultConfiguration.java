@@ -1404,7 +1404,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class ConfigurationDescription implements Describable {
+    static class ConfigurationDescription implements Describable {
         private final Path identityPath;
 
         ConfigurationDescription(Path identityPath) {

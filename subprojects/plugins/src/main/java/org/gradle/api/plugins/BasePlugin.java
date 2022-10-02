@@ -102,7 +102,7 @@ public class BasePlugin implements Plugin<Project> {
         defaultConfiguration.deprecateForDeclaration(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, JavaPlugin.API_CONFIGURATION_NAME);
 
         configurations.all(configuration -> {
-            if (!configuration.equals(archivesConfiguration)) {
+            if (!configuration.equals(archivesConfiguration) && configuration.isCanBeConsumed()) {
                 configuration.getArtifacts().configureEach(artifact -> {
                     if (configuration.isVisible()) {
                         defaultArtifacts.addCandidate(artifact);

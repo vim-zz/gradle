@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -137,5 +138,9 @@ public class DefaultConfigurationFactory {
             calculatedValueContainerFactory,
             this
         );
+    }
+
+    public Configuration createBucket(String name, ConfigurationsProvider configurationsProvider) {
+        return instantiator.newInstance(DefaultBucket.class, name, domainObjectContext, configurationsProvider, domainObjectCollectionFactory, fileCollectionFactory);
     }
 }
