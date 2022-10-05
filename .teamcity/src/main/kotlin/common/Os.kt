@@ -67,9 +67,9 @@ enum class Os(
     val jprofilerHome: String,
     val killAllGradleProcesses: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
-    val perfTestJavaVendor: String = "oracle",
+    val perfTestJavaVendor: String = "openjdk",
     val buildJavaVersion: JvmVersion = JvmVersion.java11,
-    val perfTestJavaVersion: JvmVersion = JvmVersion.java8
+    val perfTestJavaVersion: JvmVersion = JvmVersion.java11
 ) {
     LINUX(
         "Linux",
