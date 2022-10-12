@@ -31,7 +31,11 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
+import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -49,6 +53,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
@@ -211,7 +216,17 @@ class TestUtil {
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-        return project.services.get(TaskInstantiator).create(name, type)
+        return createTask(type, project, name, new Object[0])
+    }
+
+    static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name, Object[] constructorArgs) {
+        ITaskFactory taskFactory = project.services?.get(ITaskFactory) ?:
+            new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory()),
+                new TaskFactory().createChild(project, instantiatorFactory().decorateLenientScheme()))
+
+        Task task = taskFactory.create(TaskIdentity.create(name, type, project), constructorArgs)
+        assert type.isAssignableFrom(task.getClass())
+        return type.cast(task)
     }
 
     static ProjectBuilder builder(File rootDir) {

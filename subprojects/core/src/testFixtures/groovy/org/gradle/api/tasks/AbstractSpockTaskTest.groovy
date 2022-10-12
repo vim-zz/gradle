@@ -23,41 +23,27 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
-import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
-import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.specs.Spec
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 import static org.junit.Assert.assertFalse
 
-abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
+abstract class AbstractSpockTaskTest<T extends DefaultTask> extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
-    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
-    def taskFactory = new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, taskClassInfoStore, new TaskFactory())
-
-    abstract DefaultTask getTask()
-
-    def <T extends DefaultTask> T createTask(Class<T> type) {
-        return createTask(type, project, TEST_TASK_NAME)
+    private T task
+    def setup() {
+        task = createTask(project, TEST_TASK_NAME)
     }
 
-    Task createTask(ProjectInternal project, String name) {
-        return createTask(getTask().getClass(), project, name)
+    protected T getTask() {
+        task
     }
 
-    def <T extends DefaultTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = new TaskInstantiator(taskFactory.createChild(project, TestUtil.instantiatorFactory().decoratingLenientScheme), project).create(name, type)
-        assert type.isAssignableFrom(task.getClass())
-        return type.cast(task)
-    }
+    abstract T createTask(ProjectInternal project, String name)
 
     def testTask() {
         expect:

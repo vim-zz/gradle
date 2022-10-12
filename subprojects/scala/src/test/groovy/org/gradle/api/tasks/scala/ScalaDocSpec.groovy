@@ -15,8 +15,8 @@
  */
 package org.gradle.api.tasks.scala
 
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.WrapUtil
 
 import static org.gradle.api.tasks.scala.ScalaCompileTest.TEST_PATTERN_1
@@ -28,7 +28,7 @@ class ScalaDocSpec extends AbstractConventionTaskTest {
     ScalaDoc scalaDoc
 
     def setup() {
-        scalaDoc = project.services.get(TaskInstantiator).create(TEST_TASK_NAME, ScalaDoc)
+        scalaDoc = TestUtil.createTask(ScalaDoc, project, TEST_TASK_NAME)
     }
 
     @Override

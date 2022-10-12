@@ -25,10 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootC
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
-import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -61,14 +58,14 @@ class NameValidatorTest extends Specification {
 
     def "tasks are not allowed to be named '#name'"() {
         when:
-        def project = Mock(ProjectInternal) {
+        ProjectInternal project = Mock(ProjectInternal) {
             projectPath(_) >> Path.path(":foo:bar")
             identityPath(_) >> Path.path("build:foo:bar")
             getGradle() >> Mock(GradleInternal) {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }
         }
-        new TaskInstantiator(new TaskFactory(project, Mock(InstantiationScheme)), project).create(name, DefaultTask)
+        TestUtil.createTask(DefaultTask, project, name)
 
         then:
         def exception = thrown(InvalidUserDataException)

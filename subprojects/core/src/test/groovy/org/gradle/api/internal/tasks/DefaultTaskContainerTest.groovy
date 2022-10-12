@@ -31,9 +31,7 @@ import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
@@ -47,7 +45,7 @@ import static java.util.Collections.singletonMap
 class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Task> {
 
     private taskFactory = Mock(ITaskFactory)
-    private project = Mock(ProjectInternal, name: "<project>") {
+    private ProjectInternal project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
             Path.path(":project").child(name)
         }
@@ -1458,11 +1456,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         thrown(UnsupportedOperationException)
     }
 
-    def factory = new TaskInstantiator(new TaskFactory().createChild(project, TestUtil.instantiatorFactory().decorateScheme()), project)
-    SomeTask a = factory.create("a", SomeTask)
-    SomeTask b = factory.create("b", SomeTask)
-    SomeTask c = factory.create("c", SomeTask)
-    SomeOtherTask d = factory.create("d", SomeOtherTask)
+    SomeTask a = TestUtil.createTask(SomeTask, project, "a")
+    SomeTask b = TestUtil.createTask(SomeTask, project, "b")
+    SomeTask c = TestUtil.createTask(SomeTask, project, "c")
+    SomeOtherTask d = TestUtil.createTask(SomeOtherTask, project, "d")
 
     static class SomeTask extends DefaultTask {}
 

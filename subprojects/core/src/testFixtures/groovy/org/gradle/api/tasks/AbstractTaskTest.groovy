@@ -23,7 +23,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
@@ -32,8 +31,6 @@ import org.gradle.internal.MutableBoolean
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-
-import static org.junit.Assert.assertTrue
 
 abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "testTask"
@@ -44,17 +41,12 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     abstract DefaultTask getTask()
 
     def <T extends DefaultTask> T createTask(Class<T> type) {
-        return createTask(type, project, TEST_TASK_NAME)
+        return TestUtil.createTask(type, project, TEST_TASK_NAME)
     }
 
     Task createTask(ProjectInternal project, String name) {
-        return createTask(getTask().getClass(), project, name)
-    }
-
-    def <T extends DefaultTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = project.getServices().get(TaskInstantiator.class).create(name, type)
-        assertTrue(type.isAssignableFrom(task.getClass()))
-        return type.cast(task)
+        Class<?> type = getTask().getClass()
+        return TestUtil.createTask(type, project, name)
     }
 
     def setup() {

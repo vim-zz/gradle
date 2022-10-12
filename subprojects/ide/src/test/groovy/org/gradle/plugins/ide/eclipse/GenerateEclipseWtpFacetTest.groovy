@@ -15,37 +15,33 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
+import org.gradle.util.TestUtil
 
-class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
-    private eclipseFacet
+class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest<GenerateEclipseWtpFacet> {
 
-    def setup() {
-        eclipseFacet = createTask(GenerateEclipseWtpFacet)
-        eclipseFacet.facet = new EclipseWtpFacet()
-    }
-
-    GenerateEclipseWtpFacet getTask() {
-        return eclipseFacet
+    GenerateEclipseWtpFacet createTask(ProjectInternal project, String name) {
+        TestUtil.createTask(GenerateEclipseWtpFacet, project, name, new EclipseWtpFacet(null))
     }
 
     def "created facets defaults to type 'installed'"() {
         when:
-        eclipseFacet.facet.facet(name: 'fancyProject', version: '1.3')
+        task.facet.facet(name: 'fancyProject', version: '1.3')
 
         then:
-        eclipseFacet.facet.facets == [new Facet(FacetType.installed, 'fancyProject', '1.3')]
+        task.facet.facets == [new Facet(FacetType.installed, 'fancyProject', '1.3')]
     }
 
     def "can explicitly configure facet type'"() {
         when:
-        eclipseFacet.facet.facet type: facetType, name: 'fancyProject'
+        task.facet.facet type: facetType, name: 'fancyProject'
 
         then:
-        eclipseFacet.facet.facets[0].type == FacetType.valueOf(facetType)
+        task.facet.facets[0].type == FacetType.valueOf(facetType)
         where:
 
         facetType << ["fixed", "installed"]
