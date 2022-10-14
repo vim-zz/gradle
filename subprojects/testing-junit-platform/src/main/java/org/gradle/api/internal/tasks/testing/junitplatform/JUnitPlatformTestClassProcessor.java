@@ -20,9 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.DiscoverySelector;
@@ -34,15 +36,19 @@ import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.LauncherSessionListener;
 import org.junit.platform.launcher.PostDiscoveryFilter;
+import org.junit.platform.launcher.core.LauncherConfig;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
@@ -94,7 +100,26 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         private void processAllTestClasses() {
-            Launcher launcher = LauncherFactory.create();
+
+            // ClassLoaderUtils.getDefaultClassLoader() returns the context class loader, which at this
+            // point is AppClassLoader. However, the AppClassLoader does not have the implementation dependencies,
+            // while the implementation dependencies do not have the user-defined LauncherSessionListeners.
+
+            // We could just say users are not allowed to provide their own LauncherSessionListeners, in which case
+            // could set the context classloader to be implementation classpath. (the implementation classpath is this current class' class loader)
+//            List<LauncherSessionListener> launcherSessionListeners = new ArrayList<>();
+//            ServiceLoader.load(LauncherSessionListener.class, ClassLoaderUtils.getDefaultClassLoader()).forEach(launcherSessionListeners::add);
+//
+//            Launcher launcher = LauncherFactory.create(
+//                LauncherConfig.builder()
+//                    .enableLauncherSessionListenerAutoRegistration(false)
+//                    .addLauncherSessionListeners(launcherSessionListeners.toArray(new LauncherSessionListener[0]))
+//                    .build()
+//            );
+
+            ClassLoader implementationClasspath = this.getClass().getClassLoader();
+            Launcher launcher = ClassLoaderUtils.executeInClassloader(implementationClasspath, LauncherFactory::create);
+
             launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
         }
