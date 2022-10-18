@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
@@ -114,7 +115,34 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public Module getModule() {
-        return null; // TODO:
+        return new Module() {
+            @Nullable
+            @Override
+            public ProjectComponentIdentifier getProjectId() {
+                return null;
+            }
+
+            @Override
+            public String getGroup() {
+                return "unspecified";
+            }
+
+            @Override
+            public String getName() {
+                return "unspecified";
+            }
+
+            @Override
+            public String getVersion() {
+
+                return "unspecified";
+            }
+
+            @Override
+            public String getStatus() {
+                return Module.DEFAULT_STATUS;
+            }
+        };
     }
 
     @Override
@@ -345,7 +373,7 @@ public class DefaultBucket extends AbstractConfiguration {
         }
     }
 
-    boolean mutable = false;
+    boolean mutable = true;
 
     @Override
     public void markAsObserved(InternalState requestedState) {
