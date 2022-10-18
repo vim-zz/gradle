@@ -461,12 +461,6 @@ final class NoOpResolutionStrategy implements ResolutionStrategyInternal {
             }
 
             @Override
-            @Deprecated
-            public void with(ComponentSelector notation) {
-
-            }
-
-            @Override
             public Substitution using(ComponentSelector notation) {
                 return this;
             }
