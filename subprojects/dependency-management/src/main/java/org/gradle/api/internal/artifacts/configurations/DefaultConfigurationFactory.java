@@ -140,7 +140,7 @@ public class DefaultConfigurationFactory {
         );
     }
 
-    public Configuration createBucket(String name, ConfigurationsProvider configurationsProvider) {
-        return instantiator.newInstance(DefaultBucket.class, name, domainObjectContext, configurationsProvider, domainObjectCollectionFactory, fileCollectionFactory);
+    public Configuration createBucket(String name, RootComponentMetadataBuilder rootComponentMetadataBuilder, ConfigurationsProvider configurationsProvider) {
+        return instantiator.newInstance(DefaultBucket.class, name, rootComponentMetadataBuilder, domainObjectContext, configurationsProvider, domainObjectCollectionFactory, fileCollectionFactory);
     }
 }

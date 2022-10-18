@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
@@ -41,6 +43,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -56,10 +59,11 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.util.Path;
-import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -115,11 +119,25 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public void validateMutation(MutationType type) {
-        // TODO:
+        switch (type) {
+            case DEPENDENCIES: // fall-through
+            case DEPENDENCY_ATTRIBUTES:
+                if (!mutable) {
+                    throw new IllegalStateException("Not mutable!");
+                }
+                break;
+            default:
+                // Don't care
+        }
+
+        for(MutationValidator validator : childMutationValidators) {
+            validator.validateMutation(type);
+        }
     }
 
     private final Set<Configuration> extendsFrom = new LinkedHashSet<>();
     private final DisplayName displayName;
+    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final Path identityPath;
 
     private final DefaultDependencySet dependencies;
@@ -137,12 +155,16 @@ public class DefaultBucket extends AbstractConfiguration {
 
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
+    private final Path path;
+
     public DefaultBucket(String name,
+                         RootComponentMetadataBuilder rootComponentMetadataBuilder,
                          DomainObjectContext domainObjectContext,
                          ConfigurationsProvider configurationsProvider,
                          DomainObjectCollectionFactory domainObjectCollectionFactory,
                          FileCollectionFactory fileCollectionFactory) {
         super(name, configurationsProvider);
+        this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.identityPath = domainObjectContext.identityPath(name);
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.displayName = Describables.memoize(new DefaultConfiguration.ConfigurationDescription(identityPath));
@@ -156,6 +178,8 @@ public class DefaultBucket extends AbstractConfiguration {
         this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), this, ownDependencyConstraints);
 
         this.artifacts = new EmptyPublishArtifactSet(domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory);
+
+        this.path = domainObjectContext.projectPath(name);
     }
 
     @Override
@@ -165,7 +189,7 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public LocalComponentMetadata toRootComponentMetaData() {
-        return null; // TODO:
+        return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
     @Override
@@ -195,22 +219,51 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public Set<Configuration> getExtendsFrom() {
-        return extendsFrom;
+        return Collections.unmodifiableSet(extendsFrom);
     }
 
     @Override
     public Configuration setExtendsFrom(Iterable<Configuration> superConfigs) {
+        validateMutation(MutationType.DEPENDENCIES);
+
+        for (Configuration configuration : this.extendsFrom) {
+            if (inheritedDependencies != null) {
+                inheritedDependencies.removeCollection(configuration.getAllDependencies());
+            }
+            if (inheritedDependencyConstraints != null) {
+                inheritedDependencyConstraints.removeCollection(configuration.getAllDependencyConstraints());
+            }
+        }
         extendsFrom.clear();
-        CollectionUtils.addAll(extendsFrom, superConfigs);
+
+        extendsFrom(superConfigs);
         return this;
     }
 
     @Override
     public Configuration extendsFrom(Configuration... superConfigs) {
-        CollectionUtils.addAll(extendsFrom, superConfigs);
+        extendsFrom(Arrays.asList(superConfigs));
         return this;
     }
 
+    void extendsFrom(Iterable<Configuration> superConfigs) {
+        validateMutation(MutationType.DEPENDENCIES);
+        for (Configuration configuration : superConfigs) {
+            if (configuration.getHierarchy().contains(this)) {
+                throw new InvalidUserDataException(String.format(
+                    "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
+                    configuration, configuration.getHierarchy()));
+            }
+            if (this.extendsFrom.add(configuration)) {
+                if (inheritedDependencies != null) {
+                    inheritedDependencies.addCollection(configuration.getAllDependencies());
+                }
+                if (inheritedDependencyConstraints != null) {
+                    inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
+                }
+            }
+        }
+    }
 
     @Override
     public DependencySet getDependencies() {
@@ -292,45 +345,79 @@ public class DefaultBucket extends AbstractConfiguration {
         }
     }
 
+    boolean mutable = false;
+
     @Override
     public void markAsObserved(InternalState requestedState) {
-        // TODO:
+        if (requestedState.compareTo(InternalState.UNRESOLVED) > 0) {
+            preventFromFurtherMutation();
+            extendsFrom.forEach(it -> ((ConfigurationInternal) it).markAsObserved(requestedState));
+        }
     }
+
+    private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
 
     @Override
     public void addMutationValidator(MutationValidator validator) {
-        // TODO:
+        childMutationValidators.add(validator);
     }
 
     @Override
     public void removeMutationValidator(MutationValidator validator) {
-        // TODO:
+        childMutationValidators.remove(validator);
     }
 
     @Override
     public OutgoingVariant convertToOutgoingVariant() {
-        // TODO:
-        return null;
+        return new OutgoingVariant() {
+            @Override
+            public DisplayName asDescribable() {
+                return Describables.of("Empty outgoing variant from '" + getName() + "'");
+            }
+
+            @Override
+            public AttributeContainerInternal getAttributes() {
+                return ImmutableAttributes.EMPTY;
+            }
+
+            @Override
+            public Set<? extends PublishArtifact> getArtifacts() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Set<? extends OutgoingVariant> getChildren() {
+                return Collections.emptySet();
+            }
+        };
     }
 
     @Override
     public void collectVariants(VariantVisitor visitor) {
-
+        // do nothing
     }
+
+    List<Action<? super ConfigurationInternal>> beforeLocking = new ArrayList<>();
 
     @Override
     public void beforeLocking(Action<? super ConfigurationInternal> action) {
-
+        beforeLocking.add(action);
     }
 
     @Override
     public boolean isCanBeMutated() {
-        return true;
+        return mutable;
     }
 
     @Override
     public void preventFromFurtherMutation() {
-        // TODO:
+        if (mutable) {
+            if (beforeLocking != null) {
+                beforeLocking.forEach(it -> it.execute(this));
+                beforeLocking.clear();
+            }
+        }
+        mutable = false;
     }
 
     @Override
@@ -345,13 +432,13 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return null; // TODO:
+        throw new UnsupportedOperationException("Cannot resolve a bucket configuration");
     }
 
     @Nullable
     @Override
     public ConfigurationInternal getConsistentResolutionSource() {
-        return null; // TODO:
+        return null;
     }
 
     @Override
@@ -361,7 +448,7 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public ResolveException maybeAddContext(ResolveException e) {
-        return null; // TODO:
+        return e;
     }
 
     @Override
@@ -406,47 +493,42 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public Set<File> resolve() {
-        assertIsResolvable();
-        return Collections.emptySet(); // unreachable
+        throw new UnsupportedOperationException("Cannot resolve bucket");
     }
 
     @Override
     public Set<File> files(Closure dependencySpecClosure) {
-        return resolve();
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public Set<File> files(Spec<? super Dependency> dependencySpec) {
-        return resolve();
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public Set<File> files(Dependency... dependencies) {
-        return resolve();
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
-        assertIsResolvable();
-        return null; // unreachable
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public FileCollection fileCollection(Closure dependencySpecClosure) {
-        assertIsResolvable();
-        return null; // unreachable
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public FileCollection fileCollection(Dependency... dependencies) {
-        assertIsResolvable();
-        return null; // unreachable
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
-        assertIsResolvable();
-        return null; // unreachable
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
@@ -481,19 +563,17 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public ResolvableDependencies getIncoming() {
-        assertIsResolvable();
-        return null; // unreachable
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public ConfigurationPublications getOutgoing() {
-        assertIsConsumable();
-        return null; // unreachable
+        throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
     @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
-
+        // no-op
     }
 
     @Override
@@ -533,7 +613,7 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public String getPath() {
-        return null; // TODO:
+        return path.getPath();
     }
 
     @Override

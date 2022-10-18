@@ -138,7 +138,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Configuration createBucket(String name) {
         // TODO: Don't allow duplicates
-        Configuration bucket = defaultConfigurationFactory.createBucket(name, this);
+        Configuration bucket = defaultConfigurationFactory.createBucket(name, rootComponentMetadataBuilder, this);
         add(bucket);
         return bucket;
     }
