@@ -145,12 +145,18 @@ public class DefaultBucket extends AbstractConfiguration {
         };
     }
 
+    enum Mutability {
+        MUTABLE,
+        LENTIENT_IMMUTABLE,
+        IMMUTABLE
+    }
+
     @Override
     public void validateMutation(MutationType type) {
         switch (type) {
             case DEPENDENCIES: // fall-through
             case DEPENDENCY_ATTRIBUTES:
-                if (!mutable) {
+                if (mutability == Mutability.IMMUTABLE) {
                     throw new IllegalStateException("Not mutable!");
                 }
                 break;
@@ -254,6 +260,10 @@ public class DefaultBucket extends AbstractConfiguration {
     public Configuration setExtendsFrom(Iterable<Configuration> superConfigs) {
         validateMutation(MutationType.DEPENDENCIES);
 
+        if (mutability != Mutability.MUTABLE) {
+            return this;
+        }
+
         for (Configuration configuration : this.extendsFrom) {
             if (inheritedDependencies != null) {
                 inheritedDependencies.removeCollection(configuration.getAllDependencies());
@@ -276,6 +286,9 @@ public class DefaultBucket extends AbstractConfiguration {
 
     void extendsFrom(Iterable<Configuration> superConfigs) {
         validateMutation(MutationType.DEPENDENCIES);
+        if (mutability != Mutability.MUTABLE) {
+            return;
+        }
         for (Configuration configuration : superConfigs) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -344,18 +357,23 @@ public class DefaultBucket extends AbstractConfiguration {
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
         validateMutation(MutationValidator.MutationType.DEPENDENCIES);
-        defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
-            if (dependencies.isEmpty()) {
-                action.execute(dependencies);
-            }
-        });
+
+        if (mutability == Mutability.MUTABLE) {
+            defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
+                if (dependencies.isEmpty()) {
+                    action.execute(dependencies);
+                }
+            });
+        }
         return this;
     }
 
     @Override
     public Configuration withDependencies(final Action<? super DependencySet> action) {
         validateMutation(MutationValidator.MutationType.DEPENDENCIES);
-        withDependencyActions = withDependencyActions.add(action);
+        if (mutability == Mutability.MUTABLE) {
+            withDependencyActions = withDependencyActions.add(action);
+        }
         return this;
     }
 
@@ -373,12 +391,12 @@ public class DefaultBucket extends AbstractConfiguration {
         }
     }
 
-    boolean mutable = true;
+    Mutability mutability = Mutability.MUTABLE;
 
     @Override
     public void markAsObserved(InternalState requestedState) {
         if (requestedState.compareTo(InternalState.UNRESOLVED) > 0) {
-            preventFromFurtherMutation();
+            mutability = Mutability.IMMUTABLE;
             extendsFrom.forEach(it -> ((ConfigurationInternal) it).markAsObserved(requestedState));
         }
     }
@@ -434,18 +452,19 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public boolean isCanBeMutated() {
-        return mutable;
+        return mutability == Mutability.MUTABLE;
     }
 
     @Override
     public void preventFromFurtherMutation() {
-        if (mutable) {
+        // Ignore mutations after calls here.
+        if (mutability == Mutability.MUTABLE) {
             if (beforeLocking != null) {
                 beforeLocking.forEach(it -> it.execute(this));
                 beforeLocking.clear();
             }
+            mutability = Mutability.LENTIENT_IMMUTABLE;
         }
-        mutable = false;
     }
 
     @Override
@@ -509,13 +528,16 @@ public class DefaultBucket extends AbstractConfiguration {
         return null; // TODO:
     }
 
+    boolean transitive = true;
+
     @Override
     public boolean isTransitive() {
-        return false;
+        return transitive;
     }
 
     @Override
     public Configuration setTransitive(boolean t) {
+        transitive = t;
         return this;
     }
 
