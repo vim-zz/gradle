@@ -48,6 +48,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -74,7 +75,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings("rawtypes")
-public class DefaultBucket extends AbstractConfiguration {
+public abstract class DefaultBucket extends AbstractConfiguration {
     @Nullable
     @Override
     public List<String> getDeclarationAlternatives() {
@@ -190,9 +191,11 @@ public class DefaultBucket extends AbstractConfiguration {
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     private final Path path;
+    private AttributeContainerInternal ignoredAttributes;
 
     public DefaultBucket(String name,
                          RootComponentMetadataBuilder rootComponentMetadataBuilder,
+                         ImmutableAttributesFactory attributesFactory,
                          DomainObjectContext domainObjectContext,
                          ConfigurationsProvider configurationsProvider,
                          DomainObjectCollectionFactory domainObjectCollectionFactory,
@@ -214,6 +217,9 @@ public class DefaultBucket extends AbstractConfiguration {
         this.artifacts = new EmptyPublishArtifactSet(domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory);
 
         this.path = domainObjectContext.projectPath(name);
+
+        // TODO: Wrap around this attributes and warn if mutated.
+        this.ignoredAttributes = attributesFactory.mutable();
     }
 
     @Override
@@ -618,6 +624,7 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public ConfigurationPublications getOutgoing() {
+        // TODO: This behavior will need to be deprecated first.
         throw new UnsupportedOperationException("Cannot get bucket files");
     }
 
@@ -658,7 +665,7 @@ public class DefaultBucket extends AbstractConfiguration {
 
     @Override
     public AttributeContainerInternal getAttributes() {
-        return ImmutableAttributes.EMPTY;
+        return ignoredAttributes;
     }
 
     @Override

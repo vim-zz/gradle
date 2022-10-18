@@ -85,10 +85,14 @@ public final class ConfigurationReportModelFactory {
             .sorted(Comparator.comparing(ReportAttribute::getName))
             .collect(Collectors.toList());
 
-        final List<ReportCapability> explicitCapabilities = configuration.getOutgoing().getCapabilities().stream()
-            .map(this::convertCapability)
-            .sorted(Comparator.comparing(ReportCapability::toGAV))
-            .collect(Collectors.toList());
+        List<ReportCapability> explicitCapabilities = Collections.emptyList();
+        if (configuration.isCanBeConsumed()) {
+            explicitCapabilities = configuration.getOutgoing().getCapabilities().stream()
+                .map(this::convertCapability)
+                .sorted(Comparator.comparing(ReportCapability::toGAV))
+                .collect(Collectors.toList());
+        }
+
         final List<ReportCapability> capabilities;
         if (explicitCapabilities.isEmpty()) {
             capabilities = Collections.singletonList(convertDefaultCapability(project));
@@ -101,10 +105,13 @@ public final class ConfigurationReportModelFactory {
             .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
             .collect(Collectors.toList());
 
-        final List<ReportSecondaryVariant> variants = configuration.getOutgoing().getVariants().stream()
-            .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
-            .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
-            .collect(Collectors.toList());
+        List<ReportSecondaryVariant> variants = Collections.emptyList();
+        if (configuration.isCanBeConsumed()) {
+            variants = configuration.getOutgoing().getVariants().stream()
+                .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
+                .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
+                .collect(Collectors.toList());
+        }
 
         final ReportConfiguration.Type type;
         if (configuration.isCanBeConsumed() && configuration.isCanBeResolved()) {
