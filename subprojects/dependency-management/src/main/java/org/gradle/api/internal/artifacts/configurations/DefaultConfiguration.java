@@ -135,6 +135,7 @@ import org.gradle.util.internal.WrapUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -328,6 +329,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public State getState() {
+        // TODO: Deprecate this all-together
         ResolveState currentState = currentResolveState.get();
         InternalState resolvedState = currentState.state;
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
@@ -343,6 +345,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @VisibleForTesting
     public InternalState getResolvedState() {
+        guardRole("getResolvedState()", Role.RESOLVABLE);
         return currentResolveState.get().state;
     }
 
@@ -417,11 +420,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean isTransitive() {
+        guardRole("isTransitive()", Role.RESOLVABLE);
         return transitive;
     }
 
     @Override
     public Configuration setTransitive(boolean transitive) {
+        guardRole("setTransitive()", Role.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         this.transitive = transitive;
         return this;
@@ -460,6 +465,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
+        guardRole("defaultDependencies(Action<? super DependencySet>)", Role.BUCKET);
         validateMutation(MutationType.DEPENDENCIES);
         defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
             if (dependencies.isEmpty()) {
@@ -471,6 +477,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration withDependencies(final Action<? super DependencySet> action) {
+        guardRole("withDependencies(Action<? super DependencySet>)", Role.BUCKET);
         validateMutation(MutationType.DEPENDENCIES);
         withDependencyActions = withDependencyActions.add(action);
         return this;
@@ -492,21 +499,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Set<Configuration> getAll() {
+        // TODO: Deprecate this terrible thing all-together
         return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
 
     @Override
     public Set<File> resolve() {
+        guardRole("resolve()", Role.RESOLVABLE);
         return getFiles();
     }
 
     @Override
     public Iterator<File> iterator() {
+        guardRole("iterator()", Role.RESOLVABLE);
         return intrinsicFiles.iterator();
     }
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
+        guardRole("visitContents(FileCollectionStructureVisitor)", Role.RESOLVABLE);
         intrinsicFiles.visitContents(visitor);
     }
 
@@ -517,31 +528,37 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean contains(File file) {
+        guardRole("contains(File)", Role.RESOLVABLE);
         return intrinsicFiles.contains(file);
     }
 
     @Override
     public boolean isEmpty() {
+        guardRole("isEmpty()", Role.RESOLVABLE);
         return intrinsicFiles.isEmpty();
     }
 
     @Override
     public Set<File> files(Dependency... dependencies) {
+        guardRole("files(Dependency...)", Role.RESOLVABLE);
         return fileCollection(dependencies).getFiles();
     }
 
     @Override
     public Set<File> files(Closure dependencySpecClosure) {
+        guardRole("files(Closure)", Role.RESOLVABLE);
         return fileCollection(dependencySpecClosure).getFiles();
     }
 
     @Override
     public Set<File> files(Spec<? super Dependency> dependencySpec) {
+        guardRole("files(Spec<? super Dependency>)", Role.RESOLVABLE);
         return fileCollection(dependencySpec).getFiles();
     }
 
     @Override
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
+        guardRole("fileCollection(Spec<? super Dependency)", Role.RESOLVABLE);
         assertIsResolvable();
         return fileCollectionFromSpec(dependencySpec);
     }
@@ -552,11 +569,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public FileCollection fileCollection(Closure dependencySpecClosure) {
+        guardRole("fileCollection(Closure)", Role.RESOLVABLE);
         return fileCollection(Specs.convertClosureToSpec(dependencySpecClosure));
     }
 
     @Override
     public FileCollection fileCollection(Dependency... dependencies) {
+        guardRole("fileCollection(Dependency...)", Role.RESOLVABLE);
         Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
         return fileCollection(deps::contains);
     }
@@ -583,6 +602,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
+        guardRole("getResolvedConfiguration", Role.RESOLVABLE);
         return resolveToStateOrLater(ARTIFACTS_RESOLVED).getResolvedConfiguration();
     }
 
@@ -839,6 +859,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
+        guardRole("getDependenciesResolver()", Role.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
@@ -899,6 +920,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
+        guardRole("getTaskDependencyFromProjectDependency(boolean, String)", Role.RESOLVABLE);
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, this::getAllDependencies);
         } else {
@@ -908,11 +930,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencySet getDependencies() {
+        guardRole("getDependencies()", Role.BUCKET);
         return dependencies;
     }
 
     @Override
     public DependencySet getAllDependencies() {
+        guardRole("getAllDependencies()", Role.BUCKET);
         if (allDependencies == null) {
             initAllDependencies();
         }
@@ -933,11 +957,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencyConstraintSet getDependencyConstraints() {
+        guardRole("useDependencyConstraints()", Role.BUCKET);
         return dependencyConstraints;
     }
 
     @Override
     public DependencyConstraintSet getAllDependencyConstraints() {
+        guardRole("getAllDependencyConstraints()", Role.BUCKET);
         if (allDependencyConstraints == null) {
             initAllDependencyConstraints();
         }
@@ -958,11 +984,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public PublishArtifactSet getArtifacts() {
+        guardRole("getArtifacts()", Role.CONSUMABLE);
         return artifacts;
     }
 
     @Override
     public PublishArtifactSet getAllArtifacts() {
+        guardRole("getAllArtifacts()", Role.CONSUMABLE);
         initAllArtifacts();
         return allArtifacts;
     }
@@ -1003,12 +1031,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Set<ExcludeRule> getExcludeRules() {
+        guardRole("getExcludeRules()", Role.RESOLVABLE);
         initExcludeRules();
         return Collections.unmodifiableSet(parsedExcludeRules);
     }
 
     @Override
     public Set<ExcludeRule> getAllExcludeRules() {
+        guardRole("getAllExcludeRules()", Role.RESOLVABLE);
         Set<ExcludeRule> result = Sets.newLinkedHashSet();
         result.addAll(getExcludeRules());
         for (Configuration config : extendsFrom) {
@@ -1031,6 +1061,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
+        guardRole("setExcludeRules()", Role.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         parsedExcludeRules = null;
         this.excludeRules.clear();
@@ -1039,6 +1070,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
+        guardRole("exclude(Map<String, String>)", Role.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         parsedExcludeRules = null;
         excludeRules.add(excludeRuleArgs);
@@ -1058,21 +1090,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ResolvableDependencies getIncoming() {
+        guardRole("getIncoming()", Role.RESOLVABLE);
         return resolvableDependencies;
     }
 
     @Override
     public ConfigurationPublications getOutgoing() {
+        guardRole("getOutgoing()", Role.CONSUMABLE);
         return outgoing;
     }
 
     @Override
     public OutgoingVariant convertToOutgoingVariant() {
+        guardRole("convertToOutgoingVariant()", Role.CONSUMABLE);
         return outgoing.convertToOutgoingVariant();
     }
 
     @Override
     public void collectVariants(VariantVisitor visitor) {
+        guardRole("collectVariants(VariantVisitor)", Role.CONSUMABLE);
         outgoing.collectVariants(visitor);
     }
 
@@ -1166,9 +1202,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
+        guardRole("outgoing(Action<? super ConfigurationPublications>)", Role.CONSUMABLE);
         action.execute(outgoing);
     }
 
+    // TODO: Deprecate copy methods?
     @Override
     public ConfigurationInternal copy() {
         return createCopy(getDependencies(), getDependencyConstraints());
@@ -1269,6 +1307,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
+        guardRole("getResolutionStrategy()", Role.RESOLVABLE);
         if (resolutionStrategy == null) {
             resolutionStrategy = resolutionStrategyFactory.create();
             resolutionStrategy.setMutationValidator(this);
@@ -1279,6 +1318,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public LocalComponentMetadata toRootComponentMetaData() {
+        guardRole("toRootComponentMetadata()", Role.CONSUMABLE);
         return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
@@ -1307,12 +1347,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration resolutionStrategy(Closure closure) {
+        guardRole("resolutionStratey(Closure)", Role.RESOLVABLE);
         configure(closure, getResolutionStrategy());
         return this;
     }
 
     @Override
     public Configuration resolutionStrategy(Action<? super ResolutionStrategy> action) {
+        guardRole("resolutionStrategy(Action<? super ResolutionStrategy>)", Role.RESOLVABLE);
         action.execute(getResolutionStrategy());
         return this;
     }
@@ -1534,6 +1576,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
         }
+        // TODO: if deprecated for resolution
     }
 
     @Override
@@ -1543,13 +1586,62 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public AttributeContainerInternal getAttributes() {
+        guardRole("getAttributes()", Role.CONSUMABLE, Role.RESOLVABLE);
         return configurationAttributes;
     }
 
     @Override
     public Configuration attributes(Action<? super AttributeContainer> action) {
+        guardRole("attributes(Action<?e super AttributesContainer>)", Role.CONSUMABLE, Role.RESOLVABLE);
         action.execute(configurationAttributes);
         return this;
+    }
+
+    private enum Role {
+        BUCKET {
+            @Override
+            String getRoleName() {
+                return "bucket";
+            }
+
+            @Override
+            boolean isRole(Configuration c) {
+                return true; // TOOD: Tom's PR
+            }
+        },
+        RESOLVABLE {
+            @Override
+            String getRoleName() {
+                return "resolvable";
+            }
+
+            @Override
+            boolean isRole(Configuration c) {
+                return c.isCanBeResolved() && ((DefaultConfiguration) c).resolutionAlternatives == null;
+            }
+        },
+        CONSUMABLE {
+            @Override
+            String getRoleName() {
+                return "consumable";
+            }
+
+            @Override
+            boolean isRole(Configuration c) {
+                return c.isCanBeConsumed() && ((DefaultConfiguration) c).consumptionDeprecation == null;
+            }
+        };
+
+        abstract String getRoleName();
+        abstract boolean isRole(Configuration c);
+    }
+
+    private void guardRole(String methodName, Role... roles) {
+        if (Arrays.stream(roles).noneMatch(role -> role.isRole(this))) {
+            String formattedRoles = Arrays.stream(roles).map(Role::getRoleName).collect(Collectors.joining(", "));
+            DeprecationLogger.deprecateBehaviour("Calling " + methodName + " on configuration with name " + getName() + " is not allowed since its role is not one of " + formattedRoles)
+                .willBeRemovedInGradle9().undocumented().nagUser();
+        }
     }
 
     @Override
@@ -1625,6 +1717,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration shouldResolveConsistentlyWith(Configuration versionsSource) {
+        guardRole("shouldResolveConsistentlyWith(Configuration)", Role.RESOLVABLE);
         this.consistentResolutionSource = (ConfigurationInternal) versionsSource;
         this.consistentResolutionReason = "version resolved in " + versionsSource + " by consistent resolution";
         return this;
@@ -1632,6 +1725,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration disableConsistentResolution() {
+        guardRole("disableConsistentResolution()", Role.RESOLVABLE);
         this.consistentResolutionSource = null;
         this.consistentResolutionReason = null;
         return this;

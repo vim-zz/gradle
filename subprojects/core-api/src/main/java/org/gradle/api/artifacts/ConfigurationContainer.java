@@ -124,4 +124,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @return The configuration.
      */
     Configuration detachedConfiguration(Dependency... dependencies);
+
+    // TODO: Document
+    void configureResolvable(Action<? super Configuration> action);
+    void configureConsumable(Action<? super Configuration> action);
+    void configureBuckets(Action<? super Configuration> action);
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -39,6 +40,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
@@ -150,4 +152,30 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return reply.toString();
     }
 
+    @Override
+    public void configureResolvable(Action<? super Configuration> action) {
+        configureEach(configuration -> {
+            if (configuration.isCanBeResolved() && ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null) {
+                action.execute(configuration);
+            }
+        });
+    }
+
+    @Override
+    public void configureConsumable(Action<? super Configuration> action) {
+        configureEach(configuration -> {
+            if (configuration.isCanBeConsumed() && ((DeprecatableConfiguration) configuration).getConsumptionDeprecation() != null) {
+                action.execute(configuration);
+            }
+        });
+    }
+
+    @Override
+    public void configureBuckets(Action<? super Configuration> action) {
+        configureEach(configuration -> {
+            if (((DeprecatableConfiguration) configuration).getDeclarationAlternatives() != null) { // TODO: Check flag in tom's PR.
+                action.execute(configuration);
+            }
+        });
+    }
 }
