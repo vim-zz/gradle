@@ -47,8 +47,9 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private List<DefaultEclipseClasspathContainer> classpathContainers;
     private DefaultEclipseOutputLocation outputLocation;
     private boolean hasAutoBuildTasks;
+    private boolean isModular;
 
-    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
+    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children, boolean isModular) {
         this.name = name;
         this.path = path;
         this.description = description;
@@ -61,6 +62,7 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.projectNatures = Collections.emptyList();
         this.buildCommands = Collections.emptyList();
         this.classpathContainers = Collections.emptyList();
+        this.isModular = isModular;
     }
 
     @Override
@@ -104,7 +106,7 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.sourceDirectories = sourceDirectories;
     }
 
-    public Iterable<? extends DefaultEclipseProjectDependency> getProjectDependencies() {
+    public Iterable<DefaultEclipseProjectDependency> getProjectDependencies() {
         return projectDependencies;
     }
 
@@ -205,5 +207,13 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
 
     public void setAutoBuildTasks(boolean hasAutoBuildTasks) {
         this.hasAutoBuildTasks = hasAutoBuildTasks;
+    }
+
+    public boolean isModular() {
+        return isModular;
+    }
+
+    public void setModular(boolean isModular) {
+        this.isModular = isModular;
     }
 }

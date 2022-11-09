@@ -352,6 +352,12 @@ public abstract class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
+        boolean inferModulePath = isInferModulePath();
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), inferModulePath);
+        return classpathFactory.createEntries();
+    }
+
+    public boolean isInferModulePath() {
         boolean inferModulePath = false;
         Task javaCompileTask = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
         if (javaCompileTask instanceof JavaCompile) {
@@ -362,8 +368,7 @@ public abstract class EclipseClasspath {
                 inferModulePath = JavaModuleDetector.isModuleSource(true, sourceRoots);
             }
         }
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), inferModulePath);
-        return classpathFactory.createEntries();
+        return inferModulePath;
     }
 
 

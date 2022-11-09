@@ -34,6 +34,7 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.AccessRule;
@@ -79,6 +80,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -155,6 +157,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         deduplicateProjectNames(root);
         buildHierarchy(root);
         populate(root);
+        updateProjectModulePath(result);
         return result;
     }
 
@@ -196,7 +199,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children).setGradleProject(rootGradleProject.findByPath(project.getPath()));
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children, eclipseModel.getClasspath().isInferModulePath()).setGradleProject(rootGradleProject.findByPath(project.getPath()));
 
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
@@ -507,5 +510,42 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         public void setEclipseOutputLocation(DefaultEclipseOutputLocation eclipseOutputLocation) {
             this.eclipseOutputLocation = eclipseOutputLocation;
         }
+    }
+
+    private void updateProjectModulePath(DefaultEclipseProject root) {
+        Map<String, DefaultEclipseProject> pathToProject = getAll(root, new HashMap<>());
+        for (DefaultEclipseProject project : pathToProject.values()) {
+            if (project.isModular()) {
+                for (DefaultEclipseProjectDependency projectDependency : project.getProjectDependencies()) {
+                    System.out.println("pathToProject: " + pathToProject);
+                    System.out.println("dependency path: " + projectDependency.getPath());
+                    DefaultEclipseProject targetProject = pathToProject.get(projectDependency.getPath());
+                    System.out.println("target project: " + targetProject);
+                    System.out.println("target project is modular: " + (targetProject != null && targetProject.isModular()));
+                    if (targetProject != null && targetProject.isModular()) {
+                        Iterator<DefaultClasspathAttribute> iterator = projectDependency.getClasspathAttributes().iterator();
+                        while(iterator.hasNext()) {
+                            DefaultClasspathAttribute next = iterator.next();
+                            if (next.getName().equals(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY)) {
+                                iterator.remove();
+                                break;
+                            }
+                        }
+                        projectDependency.getClasspathAttributes().add(new DefaultClasspathAttribute(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY, EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE));
+                    }
+
+                }
+            }
+
+        }
+    }
+
+    private Map<String, DefaultEclipseProject> getAll(DefaultEclipseProject root, Map<String, DefaultEclipseProject> acc) {
+        System.out.println(root.getName());
+        acc.put(root.getName(), root);
+        for (DefaultEclipseProject p : root.getChildren()) {
+            getAll(p, acc);
+        }
+        return acc;
     }
 }
