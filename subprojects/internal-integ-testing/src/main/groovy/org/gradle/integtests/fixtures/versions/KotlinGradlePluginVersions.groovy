@@ -30,4 +30,8 @@ class KotlinGradlePluginVersions {
     List<String> getLatests() {
         return LATEST_VERSIONS
     }
+
+    static String getLatest() {
+        return LATEST_VERSIONS.last()
+    }
 }
