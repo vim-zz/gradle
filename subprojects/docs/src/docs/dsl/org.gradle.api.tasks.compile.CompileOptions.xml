@@ -81,10 +81,6 @@
                 <td><literal><replaceable>${project.buildDir}</replaceable>/generated/sources/annotationProcessor/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
             <tr>
-                <td>annotationProcessorGeneratedSourcesDirectory</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/generated/sources/annotationProcessor/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
-            </tr>
-            <tr>
                 <td>headerOutputDirectory</td>
                 <td><literal><replaceable>${project.buildDir}</replaceable>/generated/sources/headers/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
