@@ -60,7 +60,9 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         given:
         buildFile << """
         apply plugin:'java'
-        targetCompatibility = 1.5
+        java {
+            targetCompatibility = 1.5
+        }
 """
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
@@ -75,7 +77,9 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         apply plugin:'java'
         apply plugin:'eclipse'
 
-        targetCompatibility = 1.6
+        java {
+            targetCompatibility = 1.6
+        }
 
         eclipse {
             jdt {
@@ -118,8 +122,10 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
         buildFile << """
             project(':subproject-a') {
-                apply plugin: 'java'
-                targetCompatibility = 1.1
+                apply plugin: 'java''
+                java {
+                    targetCompatibility = 1.1
+                }
             }
             project(':subproject-b') {
                 apply plugin: 'java'
@@ -133,7 +139,9 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             project(':subproject-c') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
-                targetCompatibility = 1.6
+                java {
+                    targetCompatibility = 1.6
+                }
                 eclipse {
                     jdt {
                         targetCompatibility = 1.3

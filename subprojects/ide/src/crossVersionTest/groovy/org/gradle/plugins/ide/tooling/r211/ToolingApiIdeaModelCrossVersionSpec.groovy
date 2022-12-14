@@ -134,12 +134,16 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
             project(':child2') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.2'
+                java {
+                    sourceCompatibility = '1.2'
+                }
             }
 
             project(':child3') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.5'
+                java {
+                    sourceCompatibility = '1.5'
+                }
             }
 
         """
@@ -173,12 +177,16 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
             project(':child2') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.2'
+                java {
+                    sourceCompatibility = '1.2'
+                }
             }
 
             project(':child3') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.5'
+                java {
+                    sourceCompatibility = '1.5'
+                }
             }
 
         """
@@ -218,7 +226,9 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             allprojects {
                 apply plugin:'java'
                 apply plugin:'idea'
-                targetCompatibility = "1.5"
+                java {
+                    targetCompatibility = "1.5"
+                }
             }
 
         """
@@ -243,7 +253,9 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             allprojects {
                 apply plugin:'java'
                 apply plugin:'idea'
-                targetCompatibility = "1.5"
+                java {
+                    targetCompatibility = "1.5"
+                }
             }
 
         """
@@ -264,21 +276,29 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         settingsFile << "\ninclude 'root', 'child1', ':child2:child3', 'child4'"
         buildFile << """
             apply plugin:'java'
-            targetCompatibility = "1.5"
+            java {
+                targetCompatibility = "1.5"
+            }
 
             project(':child1') {
                 apply plugin:'java'
-                targetCompatibility = "1.5"
+                java {
+                    targetCompatibility = "1.5"
+                }
             }
 
             project(':child2') {
                 apply plugin:'java'
-                targetCompatibility = '1.6'
+                java {
+                    targetCompatibility = '1.6'
+                }
             }
 
             project(':child2:child3') {
                 apply plugin:'java'
-                targetCompatibility = '1.7'
+                java {
+                    targetCompatibility = '1.7'
+                }
             }
             project(':child4') {
             }

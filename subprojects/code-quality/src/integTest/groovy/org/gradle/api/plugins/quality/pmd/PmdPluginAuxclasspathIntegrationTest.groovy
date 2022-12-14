@@ -41,7 +41,9 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
                 apply plugin: 'java'
 
-                ${requiredSourceCompatibility()}
+                java {
+                    ${requiredSourceCompatibility()}
+                }
             }
 
             project("pmd-rule") {

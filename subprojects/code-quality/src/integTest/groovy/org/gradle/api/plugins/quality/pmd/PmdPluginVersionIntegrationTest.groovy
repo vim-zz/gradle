@@ -47,7 +47,9 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 classpath = files()
             }"""}
 
-            ${requiredSourceCompatibility()}
+            java {
+                ${requiredSourceCompatibility()}
+            }
         """.stripIndent()
     }
 

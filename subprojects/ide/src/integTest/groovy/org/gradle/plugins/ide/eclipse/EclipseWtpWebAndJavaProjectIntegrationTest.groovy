@@ -33,22 +33,26 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
 
                ${mavenCentralRepository()}
            }
-           project(':web') {
-               apply plugin: 'war'
+            project(':web') {
+                apply plugin: 'war'
 
-               sourceCompatibility = 1.6
+                java {
+                    sourceCompatibility = 1.6
+                }
 
-               dependencies {
-                   providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
-                   implementation 'org.apache.commons:commons-lang3:3.0'
-                   implementation project(':java')
-                   testImplementation "junit:junit:4.13"
-               }
-           }
+                dependencies {
+                    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+                    implementation 'org.apache.commons:commons-lang3:3.0'
+                    implementation project(':java')
+                    testImplementation "junit:junit:4.13"
+                }
+            }
             project(':java') {
                 apply plugin: 'java'
 
-                sourceCompatibility = 1.6
+                java {
+                    sourceCompatibility = 1.6
+                }
 
                 dependencies {
                     implementation 'com.google.guava:guava:18.0'

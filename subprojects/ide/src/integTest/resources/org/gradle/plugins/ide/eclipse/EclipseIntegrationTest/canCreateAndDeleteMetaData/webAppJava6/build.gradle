@@ -1,6 +1,8 @@
 apply plugin: 'war'
 
-sourceCompatibility = 6
+java {
+    sourceCompatibility = 6
+}
 
 dependencies {
     implementation project(":common")

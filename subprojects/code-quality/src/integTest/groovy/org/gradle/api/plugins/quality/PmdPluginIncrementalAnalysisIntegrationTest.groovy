@@ -39,7 +39,9 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
                 classpath = files()
             }"""}
 
-            ${requiredSourceCompatibility()}
+            java {
+                ${requiredSourceCompatibility()}
+            }
         """.stripIndent()
     }
 

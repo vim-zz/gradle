@@ -146,9 +146,12 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     def "Respects targetCompatibility customization"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           targetCompatibility = 1.4
+        """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            java {
+                targetCompatibility = 1.4
+            }
         """
 
         when:
@@ -180,14 +183,17 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     def "javaRuntimeName customization wins over targetCompatibility"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           targetCompatibility = 1.4
-           eclipse {
-               jdt {
+        """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            java {
+                targetCompatibility = 1.4
+            }
+            eclipse {
+                jdt {
                     javaRuntimeName = "customJavaRuntime"
-               }
-           }
+                }
+            }
         """
 
         when:

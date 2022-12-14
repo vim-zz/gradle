@@ -62,7 +62,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            sourceCompatibility = 1.6
+            java {
+                sourceCompatibility = 1.6
+            }
         """
 
         when:
@@ -77,7 +79,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             project(':subproject-a') {
                 apply plugin: 'java'
-                sourceCompatibility = 1.1
+                java {
+                    sourceCompatibility = 1.1
+                }
             }
             project(':subproject-b') {
                 apply plugin: 'java'
@@ -91,7 +95,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
             project(':subproject-c') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
-                sourceCompatibility = 1.6
+                java {
+                    sourceCompatibility = 1.6
+                }
                 eclipse {
                     jdt {
                         sourceCompatibility = 1.3

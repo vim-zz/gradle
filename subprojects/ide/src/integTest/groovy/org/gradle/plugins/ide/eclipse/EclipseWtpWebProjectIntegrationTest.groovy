@@ -32,7 +32,9 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         """apply plugin: 'war'
            apply plugin: 'eclipse-wtp'
 
-           sourceCompatibility = 1.6
+           java {
+               sourceCompatibility = 1.6
+           }
 
            ${mavenCentralRepository()}
 
