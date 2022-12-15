@@ -74,11 +74,3 @@ packageCycles {
     excludePatterns.add("org/gradle/model/internal/type/**")
     excludePatterns.add("org/gradle/api/internal/plugins/*")
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

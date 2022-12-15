@@ -13,11 +13,3 @@ dependencies {
     implementation(project(":base-annotations"))
     implementation(libs.guava)
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

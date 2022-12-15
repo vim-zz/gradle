@@ -22,11 +22,3 @@ dependencies {
     }
     testImplementation(testFixtures(project(":native")))
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

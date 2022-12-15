@@ -44,11 +44,3 @@ jmh {
     warmupIterations.set(10)
     synchronizeIterations.set(false)
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

@@ -15,11 +15,3 @@ dependencies {
 
     implementation(project(":base-services"))
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

@@ -27,11 +27,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/process/internal/**")
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

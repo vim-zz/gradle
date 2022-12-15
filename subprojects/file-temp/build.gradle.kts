@@ -33,11 +33,3 @@ dependencies {
 
     testFixturesImplementation(libs.jetbrainsAnnotations)
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

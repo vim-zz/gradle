@@ -13,11 +13,3 @@ dependencies {
 
     implementation(libs.slf4jApi)
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

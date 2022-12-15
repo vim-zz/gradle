@@ -21,11 +21,3 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

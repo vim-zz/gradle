@@ -24,11 +24,3 @@ dependencies {
     testImplementation(project(":internal-testing"))
     testImplementation(testFixtures(project(":snapshots")))
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

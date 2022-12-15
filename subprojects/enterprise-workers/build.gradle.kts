@@ -9,11 +9,3 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.jsr305)
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}

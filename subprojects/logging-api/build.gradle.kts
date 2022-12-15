@@ -27,11 +27,3 @@ dependencies {
 
     implementation(project(":base-annotations"))
 }
-
-dependencyAnalysis {
-    issues {
-        onAny {
-            severity("fail")
-        }
-    }
-}
