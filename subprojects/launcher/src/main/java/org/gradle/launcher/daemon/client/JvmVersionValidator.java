@@ -23,6 +23,9 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class JvmVersionValidator {
+
+    public static final JavaVersion MIN_SUPPORTED_JVM_VERSION = JavaVersion.VERSION_1_8;
+
     private final JvmVersionDetector versionDetector;
 
     public JvmVersionValidator(JvmVersionDetector versionDetector) {
@@ -35,6 +38,6 @@ public class JvmVersionValidator {
         }
 
         JavaVersion javaVersion = versionDetector.getJavaVersion(parameters.getEffectiveJvm());
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8, javaVersion);
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", MIN_SUPPORTED_JVM_VERSION, javaVersion);
     }
 }

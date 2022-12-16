@@ -57,7 +57,8 @@ public class DaemonParameters {
     private boolean stop;
     private boolean status;
     private Priority priority = Priority.NORMAL;
-    private JavaInfo jvm = Jvm.current();
+    private JavaInfo jvm;
+    private Integer jvmVersion;
 
     public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
         this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
@@ -117,13 +118,25 @@ public class DaemonParameters {
     }
 
     public JavaInfo getEffectiveJvm() {
-        return jvm;
+        return jvm != null ? jvm : Jvm.current();
     }
 
     @Nullable
-    public DaemonParameters setJvm(JavaInfo jvm) {
-        this.jvm = jvm == null ? Jvm.current() : jvm;
-        return this;
+    public JavaInfo getJvm() {
+        return jvm;
+    }
+
+    public void setJvm(JavaInfo jvm) {
+        this.jvm = jvm;
+    }
+
+    public void setJvmVersion(int version) {
+        this.jvmVersion = version;
+    }
+
+    @Nullable
+    public Integer getJvmVersion() {
+        return jvmVersion;
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
