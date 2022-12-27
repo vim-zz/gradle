@@ -20,8 +20,8 @@ val awsS3Version = "1.12.372"
 val bouncycastleVersion = "1.70"
 val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.2"
-val jettyVersion = "9.4.50.v20221201"
-val junit5Version = "5.9.1"
+val jettyVersion = "9.4.36.v20210114"
+val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-24"
 val slf4jVersion = "1.7.36"
@@ -87,7 +87,7 @@ dependencies {
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.10") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
-        api(libs.hikariCP)              { version { strictly("5.0.1") }}
+        api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11") }}
         api(libs.httpcore)              { version { strictly("4.4.16") }}
         api(libs.inject)                { version { strictly("1") }}
         api(libs.ivy)                   { version { strictly("2.3.0"); because("2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457") }}
@@ -115,7 +115,7 @@ dependencies {
         api(libs.junit)                 { version { strictly("4.13.2") }}
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
-        api(libs.junitPlatform)         { version { strictly("1.9.1") }}
+        api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
