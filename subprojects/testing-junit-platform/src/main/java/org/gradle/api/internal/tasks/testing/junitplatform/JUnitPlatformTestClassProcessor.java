@@ -107,7 +107,11 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         private void processAllTestClasses() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
-            launcherSession.getLauncher().execute(discoveryRequest, executionListener);
+            try {
+                launcherSession.getLauncher().execute(discoveryRequest, executionListener);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         }
     }
 

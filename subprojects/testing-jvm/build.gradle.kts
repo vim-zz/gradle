@@ -34,6 +34,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
+    testCompileOnly("com.ibm.mq:com.ibm.mq.allclient:9.1.0.11")
+    testCompileOnly("org.testcontainers:junit-jupiter:1.17.3")
+
     integTestImplementation(project(":plugins"))
     integTestImplementation(testFixtures(project(":testing-base")))
     integTestImplementation(testFixtures(project(":language-groovy")))

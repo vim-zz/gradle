@@ -61,7 +61,8 @@ public class InterHubMessageSerializer implements StatefulSerializer<InterHubMes
 
         @Override
         public InterHubMessage read() throws Exception {
-            switch (decoder.readByte()) {
+            byte b = decoder.readByte();
+            switch (b) {
                 case CHANNEL_MESSAGE:
                     ChannelIdentifier channelId = readChannelId();
                     Object payload = payloadReader.read();
@@ -69,7 +70,7 @@ public class InterHubMessageSerializer implements StatefulSerializer<InterHubMes
                 case END_STREAM_MESSAGE:
                     return new EndOfStream();
                 default:
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException("Unknown message type: " + b);
             }
         }
 
