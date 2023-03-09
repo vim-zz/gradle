@@ -32,12 +32,12 @@ import org.gradle.internal.operations.BuildOperationExecutor
 
 
 class IsolateTransformerParametersNodeCodec(
-        val parameterScheme: TransformParameterScheme,
-        val isolatableFactory: IsolatableFactory,
-        val buildOperationExecutor: BuildOperationExecutor,
-        val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
-        val fileCollectionFactory: FileCollectionFactory,
-        val documentationRegistry: DocumentationRegistry
+    val parameterScheme: TransformParameterScheme,
+    val isolatableFactory: IsolatableFactory,
+    val buildOperationExecutor: BuildOperationExecutor,
+    val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+    val fileCollectionFactory: FileCollectionFactory,
+    val documentationRegistry: DocumentationRegistry
 ) : Codec<DefaultTransformer.IsolateTransformerParameters> {
     override suspend fun WriteContext.encode(value: DefaultTransformer.IsolateTransformerParameters) {
         write(value.parameterObject)
