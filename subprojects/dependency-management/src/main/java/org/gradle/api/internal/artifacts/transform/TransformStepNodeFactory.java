@@ -16,8 +16,22 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+
+import java.util.Collection;
+
 /**
- * Empty interface for now to signal a dependency on an artifact transformation.
+ * Creates a transform step node per artifact in the given artifact set.
  */
-public interface TransformationDependency {
+public interface TransformStepNodeFactory {
+
+    Collection<TransformStepNode> create(
+        ResolvedArtifactSet artifactSet,
+        ComponentVariantIdentifier targetComponentVariant,
+        TransformStep transformStep,
+        AttributeContainer sourceAttributes,
+        TransformUpstreamDependenciesResolver dependenciesResolver
+    );
+
 }

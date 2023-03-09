@@ -20,8 +20,8 @@ import com.google.common.io.Files;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
-import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.transform.TransformRegistration;
+import org.gradle.api.internal.artifacts.transform.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -63,7 +63,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
             }
         }
 
-        for (ArtifactTransformRegistration transform : transformRegistry.getTransforms()) {
+        for (TransformRegistration transform : transformRegistry.getTransformRegistrations()) {
             AttributeContainerInternal sourceAttributes = transform.getFrom();
             String format = sourceAttributes.getAttribute(ARTIFACT_TYPE_ATTRIBUTE);
             // Some format that is not already registered

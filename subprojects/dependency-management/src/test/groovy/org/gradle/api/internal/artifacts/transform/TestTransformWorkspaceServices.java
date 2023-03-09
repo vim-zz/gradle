@@ -25,11 +25,11 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import java.io.File;
 
-public class TestTransformationWorkspaceServices implements TransformationWorkspaceServices {
+public class TestTransformWorkspaceServices implements TransformWorkspaceServices {
     private final File transformationsStoreDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
 
-    public TestTransformationWorkspaceServices(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
+    public TestTransformWorkspaceServices(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.transformationsStoreDirectory = transformationsStoreDirectory;
         this.executionHistoryStore = executionHistoryStore;
     }
@@ -46,7 +46,7 @@ public class TestTransformationWorkspaceServices implements TransformationWorksp
     }
 
     @Override
-    public Cache<UnitOfWork.Identity, Try<TransformationResult>> getIdentityCache() {
+    public Cache<UnitOfWork.Identity, Try<TransformResult>> getIdentityCache() {
         return new ManualEvictionInMemoryCache<>();
     }
 }

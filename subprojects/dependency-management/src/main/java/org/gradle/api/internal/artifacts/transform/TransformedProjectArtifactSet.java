@@ -40,7 +40,7 @@ import java.util.Collection;
 public class TransformedProjectArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
 
     private final ComponentVariantIdentifier targetVariant;
-    private final Collection<TransformationNode> transformedArtifacts;
+    private final Collection<TransformStepNode> transformedArtifacts;
 
     public TransformedProjectArtifactSet(
         ComponentVariantIdentifier targetVariant,
@@ -48,16 +48,16 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
         AttributeContainer sourceAttributes,
         VariantDefinition variantDefinition,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeFactory transformationNodeFactory
+        TransformStepNodeFactory transformStepNodeFactory
     ) {
         this.targetVariant = targetVariant;
-        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(targetVariant.getComponentId(), variantDefinition.getTransformation());
-        this.transformedArtifacts = transformationNodeFactory.create(delegate, targetVariant, variantDefinition.getTransformationStep(), sourceAttributes, dependenciesResolver);
+        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(targetVariant.getComponentId(), variantDefinition.getTransform());
+        this.transformedArtifacts = transformStepNodeFactory.create(delegate, targetVariant, variantDefinition.getTransformStep(), sourceAttributes, dependenciesResolver);
     }
 
     public TransformedProjectArtifactSet(
         ComponentVariantIdentifier targetVariant,
-        Collection<TransformationNode> transformedArtifacts
+        Collection<TransformStepNode> transformedArtifacts
     ) {
         this.targetVariant = targetVariant;
         this.transformedArtifacts = transformedArtifacts;
@@ -67,7 +67,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
         return targetVariant;
     }
 
-    public Collection<TransformationNode> getTransformedArtifacts() {
+    public Collection<TransformStepNode> getTransformedArtifacts() {
         return transformedArtifacts;
     }
 
@@ -89,9 +89,9 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
     @Override
     public void visit(ArtifactVisitor visitor) {
         DisplayName displayName = Describables.of(targetVariant.getComponentId());
-        for (TransformationNode node : transformedArtifacts) {
+        for (TransformStepNode node : transformedArtifacts) {
             node.executeIfNotAlready();
-            Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
+            Try<TransformSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
                 for (File file : transformedSubject.get().getFiles()) {
                     visitor.visitArtifact(displayName, targetVariant.getAttributes(), targetVariant.getCapabilities(), node.getInputArtifact().transformedTo(file));
@@ -107,14 +107,14 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (!transformedArtifacts.isEmpty()) {
-            context.add(new DefaultTransformationDependency(transformedArtifacts));
+            context.add(new DefaultTransformDependency(transformedArtifacts));
         }
     }
 
     @Override
     public void visitTransformSources(TransformSourceVisitor visitor) {
-        for (TransformationNode transformationNode : transformedArtifacts) {
-            visitor.visitTransform(transformationNode);
+        for (TransformStepNode transformStepNode : transformedArtifacts) {
+            visitor.visitTransform(transformStepNode);
         }
     }
 

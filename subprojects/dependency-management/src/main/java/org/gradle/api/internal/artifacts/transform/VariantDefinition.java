@@ -32,12 +32,12 @@ public interface VariantDefinition {
     /**
      * @return The transformation chain which transforms the root variant to this variant.
      */
-    Transformation getTransformation();
+    Transform getTransform();
 
     /**
      * The single transformation step which transforms the previous variant to this variant.
      */
-    TransformationStep getTransformationStep();
+    TransformStep getTransformStep();
 
     /**
      * @return The previous variant in the transformation chain. If null, this variant uses the producer variant as its root.

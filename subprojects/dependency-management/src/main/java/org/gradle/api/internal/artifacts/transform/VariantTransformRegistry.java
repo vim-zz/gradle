@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,21 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-/**
- * Companion type to {@link TransformStepNode} that knows how to compute extra dependent nodes aside from the to be transformed artifact.
- * Instances of this type should not be shared beyond a single transformation chain.
- *
- * @see ExtraExecutionGraphDependenciesResolverFactory
- */
-public interface TransformUpstreamDependenciesResolver {
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.artifacts.transform.TransformSpec;
+
+import java.util.List;
+
+public interface VariantTransformRegistry {
+
     /**
-     * Returns the dependencies that should be applied to the given transformation step.
+     * Register an artifact transformation.
+     *
+     * @see TransformAction
      */
-    TransformUpstreamDependencies dependenciesFor(TransformStep transformStep);
+    <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+
+    List<TransformRegistration> getTransformRegistrations();
 }

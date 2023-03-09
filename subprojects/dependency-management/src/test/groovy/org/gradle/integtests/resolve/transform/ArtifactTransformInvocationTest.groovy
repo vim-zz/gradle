@@ -23,11 +23,11 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.artifacts.transform.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
-import org.gradle.api.internal.artifacts.transform.TransformationStep
-import org.gradle.api.internal.artifacts.transform.TransformationSubject
+import org.gradle.api.internal.artifacts.transform.TransformStep
+import org.gradle.api.internal.artifacts.transform.TransformSubject
 import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
@@ -111,17 +111,17 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
         new TestFile(project.file(path))
     }
 
-    private <T extends TransformParameters> TransformationStep registerTransform(Class<? extends TransformAction<T>> actionType) {
+    private <T extends TransformParameters> TransformStep registerTransform(Class<? extends TransformAction<T>> actionType) {
         def variantTransformRegistry = project.services.get(VariantTransformRegistry)
-        int currentRegisteredTransforms = variantTransformRegistry.transforms.size()
+        int currentRegisteredTransforms = variantTransformRegistry.transformRegistrations.size()
         project.dependencies.registerTransform(actionType) {
             it.from.attribute(artifactType, 'jar')
             it.to.attribute(artifactType, 'transformed')
         }
-        return variantTransformRegistry.transforms[currentRegisteredTransforms].transformationStep
+        return variantTransformRegistry.transformRegistrations[currentRegisteredTransforms].transformStep
     }
 
-    private Try<ImmutableList<File>> invokeTransform(TransformationStep transform, File inputArtifact) {
+    private Try<ImmutableList<File>> invokeTransform(TransformStep transform, File inputArtifact) {
         transform.isolateParametersIfNotAlready()
         def invocationFactory = project.services.get(TransformerInvocationFactory)
         def inputFingerprinter = project.services.get(InputFingerprinter)
@@ -132,7 +132,7 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             transform.getTransformer(),
             inputArtifact,
             DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
-            TransformationSubject.initial(artifact),
+            TransformSubject.initial(artifact),
             inputFingerprinter
         )
         invocation.completeAndGet()

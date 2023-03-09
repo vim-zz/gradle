@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.artifacts.transform.TransformSpec;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
-public interface VariantTransformRegistry {
-
-    /**
-     * Register an artifact transformation.
-     *
-     * @see TransformAction
-     */
-    <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
-
-    List<ArtifactTransformRegistration> getTransforms();
+public interface TransformRegistrationFactory {
+    TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
 }

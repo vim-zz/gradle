@@ -23,7 +23,7 @@ import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentit
 import java.util.List;
 
 /**
- * A {@link CalculateTaskGraphBuildOperationType.PlannedNode} for a {@link TransformationNode}.
+ * A {@link CalculateTaskGraphBuildOperationType.PlannedNode} for a {@link TransformStepNode}.
  */
 public class DefaultPlannedTransformStep implements CalculateTaskGraphBuildOperationType.PlannedNode {
 

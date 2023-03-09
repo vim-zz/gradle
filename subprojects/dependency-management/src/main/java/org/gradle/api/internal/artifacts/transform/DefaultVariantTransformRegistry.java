@@ -24,8 +24,6 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
-import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
@@ -39,16 +37,16 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
-    private final List<ArtifactTransformRegistration> transforms = Lists.newArrayList();
+    private final List<TransformRegistration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ServiceRegistry services;
     private final InstantiatorFactory instantiatorFactory;
     private final InstantiationScheme parametersInstantiationScheme;
-    private final TransformationRegistrationFactory registrationFactory;
+    private final TransformRegistrationFactory registrationFactory;
     @SuppressWarnings("unchecked")
     private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformationRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
         this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.services = services;
@@ -95,7 +93,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         validateActionType(actionType);
         try {
             validateAttributes(registration);
-            ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
+            TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
             transforms.add(finalizedRegistration);
         } catch (Exception e) {
             TreeFormatter formatter = new TreeFormatter();
@@ -129,7 +127,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public List<ArtifactTransformRegistration> getTransforms() {
+    public List<TransformRegistration> getTransformRegistrations() {
         return transforms;
     }
 

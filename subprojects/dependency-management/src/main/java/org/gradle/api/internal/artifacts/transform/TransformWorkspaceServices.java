@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.cache.Cache;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
-import javax.annotation.Nullable;
-
-public interface TransformationRegistrationFactory {
-    ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
+public interface TransformWorkspaceServices {
+    WorkspaceProvider getWorkspaceProvider();
+    Cache<UnitOfWork.Identity, Try<TransformResult>> getIdentityCache();
 }

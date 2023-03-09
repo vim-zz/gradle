@@ -2639,10 +2639,10 @@ Found the following transforms:
         outputContains("After transformer FileSizer on lib.jar (project :lib)")
 
         and:
-        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
-        executeTransformationOp.failure == null
-        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
-        with(executeTransformationOp.details) {
+        def executeTransformStepOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
+        executeTransformStepOp.failure == null
+        executeTransformStepOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
+        with(executeTransformStepOp.details) {
             transformerName == "FileSizer"
             subjectName == "lib.jar (project :lib)"
             with(plannedTransformStepIdentity) {
@@ -2712,10 +2712,10 @@ Found the following transforms:
         outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
 
         and:
-        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
-        executeTransformationOp.failure != null
-        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
-        with(executeTransformationOp.details) {
+        def executeTransformStepOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
+        executeTransformStepOp.failure != null
+        executeTransformStepOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
+        with(executeTransformStepOp.details) {
             transformerName == "BrokenTransform"
             subjectName == "lib.jar (project :lib)"
             with(plannedTransformStepIdentity) {

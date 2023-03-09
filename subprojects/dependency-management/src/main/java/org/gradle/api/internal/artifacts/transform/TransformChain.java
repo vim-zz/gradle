@@ -19,30 +19,30 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Action;
 
 /**
- * A series of {@link TransformationStep}s.
+ * A series of {@link TransformStep}s.
  */
-public class TransformationChain implements Transformation {
+public class TransformChain implements Transform {
 
-    private final Transformation first;
-    private final Transformation second;
+    private final Transform first;
+    private final Transform second;
     private final int stepsCount;
 
-    public TransformationChain(Transformation first, Transformation second) {
+    public TransformChain(Transform first, Transform second) {
         this.first = first;
         this.second = second;
         this.stepsCount = first.stepsCount() + second.stepsCount();
     }
 
-    public Transformation getFirst() {
+    public Transform getFirst() {
         return first;
     }
 
-    public Transformation getSecond() {
+    public Transform getSecond() {
         return second;
     }
 
     @Override
-    public boolean endsWith(Transformation otherTransform) {
+    public boolean endsWith(Transform otherTransform) {
         int otherStepsCount = otherTransform.stepsCount();
         if (otherStepsCount > this.stepsCount) {
             return false;
@@ -50,7 +50,7 @@ public class TransformationChain implements Transformation {
             return second == otherTransform;
         }
 
-        TransformationChain otherChain = (TransformationChain) otherTransform;
+        TransformChain otherChain = (TransformChain) otherTransform;
         if (otherChain.second != second) {
             return false;
         } else {
@@ -74,8 +74,8 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public void visitTransformationSteps(Action<? super TransformationStep> action) {
-        first.visitTransformationSteps(action);
-        second.visitTransformationSteps(action);
+    public void visitTransformSteps(Action<? super TransformStep> action) {
+        first.visitTransformSteps(action);
+        second.visitTransformSteps(action);
     }
 }

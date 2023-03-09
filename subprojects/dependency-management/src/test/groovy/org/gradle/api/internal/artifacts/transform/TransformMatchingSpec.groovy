@@ -20,9 +20,9 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.internal.execution.InputFingerprinter
 import spock.lang.Specification
 
-class TransformationMatchingSpec extends Specification {
+class TransformMatchingSpec extends Specification {
 
-    def "different TransformationStep does not contain each other"() {
+    def "different TransformStep does not contain each other"() {
         given:
         def step1 = step()
         def step2 = step()
@@ -32,7 +32,7 @@ class TransformationMatchingSpec extends Specification {
         !step2.endsWith(step1)
     }
 
-    def "TransformationStep contains itself"() {
+    def "TransformStep contains itself"() {
         given:
         def step = step()
 
@@ -44,7 +44,7 @@ class TransformationMatchingSpec extends Specification {
         given:
         def step1 = step()
         def step2 = step()
-        def chain = new TransformationChain(step1, step2)
+        def chain = new TransformChain(step1, step2)
 
         expect:
         chain.endsWith(step2)
@@ -58,7 +58,7 @@ class TransformationMatchingSpec extends Specification {
         given:
         def step1 = step()
         def step2 = step()
-        def chain = new TransformationChain(step1, step2)
+        def chain = new TransformChain(step1, step2)
 
         expect:
         chain.endsWith(chain)
@@ -69,8 +69,8 @@ class TransformationMatchingSpec extends Specification {
         def step1 = step()
         def step2 = step()
         def step3 = step()
-        def subChain = new TransformationChain(step2, step3)
-        def longChain = new TransformationChain(new TransformationChain(step1, step2), step3)
+        def subChain = new TransformChain(step2, step3)
+        def longChain = new TransformChain(new TransformChain(step1, step2), step3)
 
         expect:
         longChain.endsWith(subChain)
@@ -82,9 +82,9 @@ class TransformationMatchingSpec extends Specification {
         def step1 = step()
         def step2 = step()
         def step3 = step()
-        def chain1 = new TransformationChain(step2, step3)
-        def chain2 = new TransformationChain(step1, step2)
-        def chain3 = new TransformationChain(step1, step3)
+        def chain1 = new TransformChain(step2, step3)
+        def chain2 = new TransformChain(step1, step2)
+        def chain3 = new TransformChain(step1, step3)
 
         expect:
         !chain1.endsWith(chain2)
@@ -95,7 +95,7 @@ class TransformationMatchingSpec extends Specification {
         !chain1.endsWith(chain3)
     }
 
-    private TransformationStep step() {
-        new TransformationStep(Mock(Transformer), Mock(TransformerInvocationFactory), Mock(DomainObjectContext), Mock(InputFingerprinter))
+    private TransformStep step() {
+        new TransformStep(Mock(Transformer), Mock(TransformerInvocationFactory), Mock(DomainObjectContext), Mock(InputFingerprinter))
     }
 }

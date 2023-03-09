@@ -90,7 +90,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
 
-    def transformationWorkspaceServices = new TestTransformationWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
+    def transformationWorkspaceServices = new TestTransformWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
@@ -100,7 +100,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fileCollectionFingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
-        get(TransformationWorkspaceServices) >> new TestTransformationWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)
+        get(TransformWorkspaceServices) >> new TestTransformWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)
     }
 
     def childProject = Stub(ProjectInternal) {
@@ -207,8 +207,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
-            def builder = TransformationResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
+        TransformResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+            def builder = TransformResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
             transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
                 builder.addOutput(it) {}
             }
@@ -495,11 +495,11 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         return type == TransformationType.MUTABLE ? mutableTransformsStoreDirectory : immutableTransformsStoreDirectory
     }
 
-    private TransformationSubject immutableDependency(File file) {
-        return TransformationSubject.initial(artifact(Stub(ComponentArtifactIdentifier), file))
+    private TransformSubject immutableDependency(File file) {
+        return TransformSubject.initial(artifact(Stub(ComponentArtifactIdentifier), file))
     }
 
-    private TransformationSubject mutableDependency(File file) {
+    private TransformSubject mutableDependency(File file) {
         def artifactIdentifier = new ComponentFileArtifactIdentifier(
             new DefaultProjectComponentIdentifier(
                 DefaultBuildIdentifier.ROOT,
@@ -507,7 +507,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
                 Path.path(":child"),
                 "child"
             ), file.getName())
-        return TransformationSubject.initial(artifact(artifactIdentifier, file))
+        return TransformSubject.initial(artifact(artifactIdentifier, file))
     }
 
     private ResolvableArtifact artifact(ComponentArtifactIdentifier id, File file) {
@@ -517,11 +517,11 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     }
 
     private Try<ImmutableList<File>> invoke(
-        Transformer transformer,
-        File inputArtifact,
-        ArtifactTransformDependencies dependencies,
-        TransformationSubject subject,
-        InputFingerprinter inputFingerprinter
+            Transformer transformer,
+            File inputArtifact,
+            ArtifactTransformDependencies dependencies,
+            TransformSubject subject,
+            InputFingerprinter inputFingerprinter
     ) {
         return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).completeAndGet()
     }

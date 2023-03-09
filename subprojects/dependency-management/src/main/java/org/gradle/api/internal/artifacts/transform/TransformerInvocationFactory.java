@@ -33,6 +33,6 @@ public interface TransformerInvocationFactory {
         Transformer transformer,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
-        TransformationSubject subject,
+        TransformSubject subject,
         InputFingerprinter inputFingerprinter);
 }

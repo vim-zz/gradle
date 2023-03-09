@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -57,7 +56,7 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.stream.Collectors;
 
-public class DefaultTransformationRegistrationFactory implements TransformationRegistrationFactory {
+public class DefaultTransformRegistrationFactory implements TransformRegistrationFactory {
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final IsolatableFactory isolatableFactory;
@@ -74,7 +73,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final InstantiationScheme actionInstantiationScheme;
     private final DocumentationRegistry documentationRegistry;
 
-    public DefaultTransformationRegistrationFactory(
+    public DefaultTransformRegistrationFactory(
         BuildOperationExecutor buildOperationExecutor,
         IsolatableFactory isolatableFactory,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -106,7 +105,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     }
 
     @Override
-    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
+    public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, cacheable);
@@ -174,18 +173,18 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             internalServices,
             documentationRegistry);
 
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
+        return new DefaultTransformRegistration(from, to, new TransformStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
     }
 
-    private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {
+    private static class DefaultTransformRegistration implements TransformRegistration {
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
-        private final TransformationStep transformationStep;
+        private final TransformStep transformStep;
 
-        public DefaultArtifactTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
+        public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
             this.from = from;
             this.to = to;
-            this.transformationStep = transformationStep;
+            this.transformStep = transformStep;
         }
 
         @Override
@@ -199,13 +198,13 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
 
         @Override
-        public TransformationStep getTransformationStep() {
-            return transformationStep;
+        public TransformStep getTransformStep() {
+            return transformStep;
         }
 
         @Override
         public String toString() {
-            return transformationStep + " transform from " + from + " to " + to;
+            return transformStep + " transform from " + from + " to " + to;
         }
     }
 

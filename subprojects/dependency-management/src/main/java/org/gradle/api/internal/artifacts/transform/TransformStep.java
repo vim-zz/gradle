@@ -39,15 +39,15 @@ import java.io.File;
  *
  * Transforms a subject by invoking a transformer on each of the subjects files.
  */
-public class TransformationStep implements Transformation, TaskDependencyContainer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
+public class TransformStep implements Transform, TaskDependencyContainer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformStep.class);
 
     private final Transformer transformer;
     private final TransformerInvocationFactory transformerInvocationFactory;
     private final ProjectInternal owningProject;
     private final InputFingerprinter globalInputFingerprinter;
 
-    public TransformationStep(Transformer transformer, TransformerInvocationFactory transformerInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
+    public TransformStep(Transformer transformer, TransformerInvocationFactory transformerInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
         this.transformer = transformer;
         this.transformerInvocationFactory = transformerInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;
@@ -64,7 +64,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public boolean endsWith(Transformation otherTransform) {
+    public boolean endsWith(Transform otherTransform) {
         return this == otherTransform;
     }
 
@@ -73,7 +73,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return 1;
     }
 
-    public Deferrable<Try<TransformationSubject>> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
+    public Deferrable<Try<TransformSubject>> createInvocation(TransformSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
@@ -99,7 +99,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)));
     }
 
-    private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
+    private Try<TransformSubject> doTransform(TransformSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
             Try<ImmutableList<File>> result = transformerInvocationFactory
@@ -129,7 +129,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public void visitTransformationSteps(Action<? super TransformationStep> action) {
+    public void visitTransformSteps(Action<? super TransformStep> action) {
         action.execute(this);
     }
 

@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 
 @ThreadSafe
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
-    private final TransformationNodeFactory transformationNodeFactory;
+    private final TransformStepNodeFactory transformStepNodeFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
     private final Factory externalFactory = this::doCreateExternal;
@@ -39,7 +39,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
 
     public DefaultTransformedVariantFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.transformationNodeFactory = new DefaultTransformationNodeFactory(buildOperationExecutor, calculatedValueContainerFactory);
+        this.transformStepNodeFactory = new DefaultTransformStepNodeFactory(buildOperationExecutor, calculatedValueContainerFactory);
     }
 
     @Override
@@ -54,14 +54,14 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
 
     private ResolvedArtifactSet locateOrCreate(Factory factory, ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         ImmutableAttributes target = variantDefinition.getTargetAttributes();
-        Transformation transformation = variantDefinition.getTransformation();
+        Transform transform = variantDefinition.getTransform();
         VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
         if (identifier == null) {
             // An ad hoc variant, do not cache the result
             return factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
         }
         VariantKey variantKey;
-        if (transformation.requiresDependencies()) {
+        if (transform.requiresDependencies()) {
             variantKey = new VariantWithUpstreamDependenciesKey(identifier, target, dependenciesResolverFactory);
         } else {
             variantKey = new VariantKey(identifier, target);
@@ -80,7 +80,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformation(), dependenciesResolverFactory, calculatedValueContainerFactory);
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransform(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
@@ -95,7 +95,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             sourceArtifacts = sourceVariant.getArtifacts();
         }
         ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities());
-        return new TransformedProjectArtifactSet(targetComponentVariant, sourceArtifacts, sourceAttributes, variantDefinition, dependenciesResolverFactory, transformationNodeFactory);
+        return new TransformedProjectArtifactSet(targetComponentVariant, sourceArtifacts, sourceAttributes, variantDefinition, dependenciesResolverFactory, transformStepNodeFactory);
     }
 
     private interface Factory {

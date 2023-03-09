@@ -78,7 +78,7 @@ public class GroupedOutputFixture {
     private final LogContent originalOutput;
     private final String strippedOutput;
     private Map<String, GroupedTaskOutputFixture> tasks;
-    private Map<String, GroupedTransformationOutputFixture> transformations;
+    private Map<String, GroupedTransformStepOutputFixture> transformSteps;
 
     public GroupedOutputFixture(LogContent output) {
         this.originalOutput = output;
@@ -87,11 +87,11 @@ public class GroupedOutputFixture {
 
     private String parse(LogContent output) {
         tasks = new HashMap<>();
-        transformations = new HashMap<>();
+        transformSteps = new HashMap<>();
 
         String strippedOutput = output.ansiCharsToPlainText().withNormalizedEol();
         findOutputs(strippedOutput, TASK_OUTPUT_PATTERN, this::consumeTaskOutput);
-        findOutputs(strippedOutput, TRANSFORMATION_OUTPUT_PATTERN, this::consumeTransformationOutput);
+        findOutputs(strippedOutput, TRANSFORMATION_OUTPUT_PATTERN, this::consumeTransformStepOutput);
 
         return strippedOutput;
     }
@@ -107,8 +107,8 @@ public class GroupedOutputFixture {
         return tasks.size();
     }
 
-    public int getTransformationCount() {
-        return transformations.size();
+    public int getTransformStepCount() {
+        return transformSteps.size();
     }
 
     public boolean hasTask(String taskName) {
@@ -128,44 +128,44 @@ public class GroupedOutputFixture {
     /**
      * Returns grouped output for the given transformer type.
      */
-    public GroupedTransformationOutputFixture transform(String transformer) {
-        List<GroupedTransformationOutputFixture> foundTransformations = transformations.values().stream()
-            .filter(transformation -> transformation.getTransformer().equals(transformer))
+    public GroupedTransformStepOutputFixture transformStep(String transformer) {
+        List<GroupedTransformStepOutputFixture> found = transformSteps.values().stream()
+            .filter(it -> it.getTransformer().equals(transformer))
             .collect(Collectors.toList());
 
-        if (foundTransformations.size() == 0) {
+        if (found.size() == 0) {
             throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
-        } else if (foundTransformations.size() > 1) {
+        } else if (found.size() > 1) {
             throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
         }
 
-        return foundTransformations.get(0);
+        return found.get(0);
     }
 
     /**
      * Returns grouped output for the given transformer type and transformation subject.
      */
-    public GroupedTransformationOutputFixture transform(String transformer, String subject) {
-        List<GroupedTransformationOutputFixture> foundTransformations = transformations.values().stream()
-            .filter(transformation -> transformation.getTransformer().equals(transformer) && transformation.getSubject().equals(subject))
+    public GroupedTransformStepOutputFixture transformStep(String transformer, String subject) {
+        List<GroupedTransformStepOutputFixture> found = transformSteps.values().stream()
+            .filter(it -> it.getTransformer().equals(transformer) && it.getSubject().equals(subject))
             .collect(Collectors.toList());
 
-        if (foundTransformations.size() == 0) {
+        if (found.size() == 0) {
             throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' and subject '%s' could not be found.%nOutput:%n%s", transformer, subject, originalOutput));
-        } else if (foundTransformations.size() > 1) {
+        } else if (found.size() > 1) {
             throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' and subject '%s' were found.%nOutput:%n%s", transformer, subject, originalOutput));
         }
 
-        return foundTransformations.get(0);
+        return found.get(0);
     }
 
     /**
      * Returns transformation subjects for the given transformer type.
      */
     public Set<String> subjectsFor(String transformer) {
-        return transformations.values().stream()
-                .filter(transformation -> transformation.getTransformer().equals(transformer))
-                .map(GroupedTransformationOutputFixture::getSubject)
+        return transformSteps.values().stream()
+                .filter(it -> it.getTransformer().equals(transformer))
+                .map(GroupedTransformStepOutputFixture::getSubject)
                 .collect(Collectors.toSet());
     }
 
@@ -193,20 +193,20 @@ public class GroupedOutputFixture {
         task.setOutcome(taskOutcome);
     }
 
-    private void consumeTransformationOutput(Matcher matcher) {
+    private void consumeTransformStepOutput(Matcher matcher) {
         String initialSubjectType = matcher.group(1);
         String subject = matcher.group(2);
         String transformer = matcher.group(3);
-        String transformationOutput = StringUtils.strip(matcher.group(4), "\n");
+        String transformStepOutput = StringUtils.strip(matcher.group(4), "\n");
 
         String key = initialSubjectType + ";" + subject + ";" + transformer;
 
-        GroupedTransformationOutputFixture transformation = transformations.get(key);
+        GroupedTransformStepOutputFixture transformation = transformSteps.get(key);
         if (transformation == null) {
-            transformation = new GroupedTransformationOutputFixture(initialSubjectType, subject, transformer);
-            transformations.put(key, transformation);
+            transformation = new GroupedTransformStepOutputFixture(initialSubjectType, subject, transformer);
+            transformSteps.put(key, transformation);
         }
 
-        transformation.addOutput(transformationOutput);
+        transformation.addOutput(transformStepOutput);
     }
 }

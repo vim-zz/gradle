@@ -24,14 +24,14 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class TransformationResultSerializerTest extends Specification {
+class TransformResultSerializerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def inputArtifact = file("inputArtifact").createDir()
     def outputDir = file("outputDir")
     def resultFile = file("results.txt")
-    def serializer = new TransformationResultSerializer(outputDir)
+    def serializer = new TransformResultSerializer(outputDir)
 
     def "reads and writes transformation results"() {
         expect:
@@ -115,7 +115,7 @@ class TransformationResultSerializerTest extends Specification {
         initialResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
 
         when:
-        def serializerWithNewOutputDir = new TransformationResultSerializer(newOutputDir)
+        def serializerWithNewOutputDir = new TransformResultSerializer(newOutputDir)
         def loadedResults = serializerWithNewOutputDir.readResultsFile(resultFile)
         then:
         loadedResults.resolveOutputsForInputArtifact(inputArtifact) == resultInNewOutputDir
@@ -131,8 +131,8 @@ class TransformationResultSerializerTest extends Specification {
         assert serializer.readResultsFile(resultFile).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
     }
 
-    private TransformationResult buildTransformationResult(Collection<File> files) {
-        def builder = TransformationResult.builderFor(inputArtifact, outputDir)
+    private TransformResult buildTransformationResult(Collection<File> files) {
+        def builder = TransformResult.builderFor(inputArtifact, outputDir)
         for (File file in files) {
             builder.addOutput(file) {}
         }

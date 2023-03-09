@@ -22,19 +22,19 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
 /**
- * A converter from {@link TransformationNode} to {@link CalculateTaskGraphBuildOperationType.PlannedNode}.
+ * A converter from {@link TransformStepNode} to {@link CalculateTaskGraphBuildOperationType.PlannedNode}.
  */
 public class ToPlannedTransformStepConverter implements ToPlannedNodeConverter {
 
     @Override
     public Class<? extends Node> getSupportedNodeType() {
-        return TransformationNode.class;
+        return TransformStepNode.class;
     }
 
     @Override
     public PlannedTransformStepIdentity getNodeIdentity(Node node) {
-        TransformationNode transformationNode = (TransformationNode) node;
-        return transformationNode.getNodeIdentity();
+        TransformStepNode transformStepNode = (TransformStepNode) node;
+        return transformStepNode.getNodeIdentity();
     }
 
     @Override
@@ -44,10 +44,10 @@ public class ToPlannedTransformStepConverter implements ToPlannedNodeConverter {
 
     @Override
     public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, DependencyLookup dependencyLookup) {
-        TransformationNode transformationNode = (TransformationNode) node;
+        TransformStepNode transformStepNode = (TransformStepNode) node;
         return new DefaultPlannedTransformStep(
-            transformationNode.getNodeIdentity(),
-            dependencyLookup.findNodeDependencies(transformationNode)
+            transformStepNode.getNodeIdentity(),
+            dependencyLookup.findNodeDependencies(transformStepNode)
         );
     }
 

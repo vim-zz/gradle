@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Action
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -56,7 +54,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistry.transforms >> [transform1, transform2, transform3]
+        transformRegistry.transformRegistrations >> [transform1, transform2, transform3]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -96,7 +94,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistry.transforms >> [transform1, transform2, transform3, transform4]
+        transformRegistry.transformRegistrations >> [transform1, transform2, transform3, transform4]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -138,7 +136,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistry.transforms >> [transform1, transform2]
+        transformRegistry.transformRegistrations >> [transform1, transform2]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -203,7 +201,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform6 = registration(fromIntermediate2, incompatible2)
 
         given:
-        transformRegistry.transforms >> [transform1, transform2, transform3, transform4, transform5, transform6]
+        transformRegistry.transformRegistrations >> [transform1, transform2, transform3, transform4, transform5, transform6]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -256,7 +254,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform4 = registration(fromOther, compatible2)
 
         given:
-        transformRegistry.transforms >> [transform1, transform2, transform3, transform4]
+        transformRegistry.transformRegistrations >> [transform1, transform2, transform3, transform4]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -310,7 +308,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def fromIntermediate = AttributeTestUtil.attributesFactory().concat(requested, intermediate)
 
         given:
-        transformRegistry.transforms >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
+        transformRegistry.transformRegistrations >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -361,7 +359,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform3 = registration(fromIntermediate, compatible)
 
         given:
-        transformRegistry.transforms >> [transform1, transform2, transform3]
+        transformRegistry.transformRegistrations >> [transform1, transform2, transform3]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -401,7 +399,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant ]
 
         given:
-        transformRegistry.transforms >> [transform1, transform2]
+        transformRegistry.transformRegistrations >> [transform1, transform2]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -430,7 +428,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant ]
 
         given:
-        transformRegistry.transforms >> [transform1, transform2]
+        transformRegistry.transformRegistrations >> [transform1, transform2]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -468,7 +466,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def finalAttributes = AttributeTestUtil.attributesFactory().concat(sourceVariant.getAttributes().asImmutable(), compatible)
 
         given:
-        transformRegistry.transforms >> [transform1]
+        transformRegistry.transformRegistrations >> [transform1]
 
         when:
         def result = transformations.findTransformedVariants(variants, requested)
@@ -488,27 +486,27 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * attributeMatcher._
     }
 
-    private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, ArtifactTransformRegistration... steps) {
+    private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, TransformRegistration... steps) {
         assert chain.root == source
         assert chain.attributes == finalAttributes
-        assert chain.transformation.stepsCount() == steps.length
+        assert chain.transform.stepsCount() == steps.length
         def actualSteps = []
-        chain.transformation.visitTransformationSteps {
+        chain.transform.visitTransformSteps {
             actualSteps << it
         }
-        def expectedSteps = steps*.transformationStep
+        def expectedSteps = steps*.transformStep
         assert actualSteps == expectedSteps
     }
 
-    private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to) {
-        def transformationStep = Stub(TransformationStep)
-        _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
-        _ * transformationStep.stepsCount() >> 1
+    private TransformRegistration registration(AttributeContainer from, AttributeContainer to) {
+        def transformStep = Stub(TransformStep)
+        _ * transformStep.visitTransformSteps(_) >> { Action action -> action.execute(transformStep) }
+        _ * transformStep.stepsCount() >> 1
 
-        return Mock(ArtifactTransformRegistration) {
+        return Mock(TransformRegistration) {
             getFrom() >> from
             getTo() >> to
-            getTransformationStep() >> transformationStep
+            getTransformStep() >> transformStep
         }
     }
 

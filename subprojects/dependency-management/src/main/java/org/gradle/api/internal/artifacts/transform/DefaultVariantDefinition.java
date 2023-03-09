@@ -26,14 +26,14 @@ import javax.annotation.Nullable;
 public class DefaultVariantDefinition implements VariantDefinition {
     private final DefaultVariantDefinition previous;
     private final ImmutableAttributes attributes;
-    private final Transformation transformation;
-    private final TransformationStep transformationStep;
+    private final Transform transform;
+    private final TransformStep transformStep;
 
-    public DefaultVariantDefinition(@Nullable DefaultVariantDefinition previous, ImmutableAttributes attributes, TransformationStep transformationStep) {
+    public DefaultVariantDefinition(@Nullable DefaultVariantDefinition previous, ImmutableAttributes attributes, TransformStep transformStep) {
         this.previous = previous;
         this.attributes = attributes;
-        this.transformation = previous != null ? new TransformationChain(previous.getTransformation(), transformationStep) : transformationStep;
-        this.transformationStep = transformationStep;
+        this.transform = previous != null ? new TransformChain(previous.getTransform(), transformStep) : transformStep;
+        this.transformStep = transformStep;
     }
 
     @Override
@@ -42,13 +42,13 @@ public class DefaultVariantDefinition implements VariantDefinition {
     }
 
     @Override
-    public Transformation getTransformation() {
-        return transformation;
+    public Transform getTransform() {
+        return transform;
     }
 
     @Override
-    public TransformationStep getTransformationStep() {
-        return transformationStep;
+    public TransformStep getTransformStep() {
+        return transformStep;
     }
 
     @Nullable
@@ -63,9 +63,9 @@ public class DefaultVariantDefinition implements VariantDefinition {
 
     public String toString() {
         if (previous != null) {
-            return previous + " <- (" + getDepth() + ") " + transformationStep;
+            return previous + " <- (" + getDepth() + ") " + transformStep;
         } else {
-            return "(" + getDepth() + ") " + transformationStep;
+            return "(" + getDepth() + ") " + transformStep;
         }
     }
 }

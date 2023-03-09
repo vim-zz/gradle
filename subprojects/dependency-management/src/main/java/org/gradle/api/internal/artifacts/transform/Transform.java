@@ -24,9 +24,9 @@ import org.gradle.api.Describable;
  *
  * This can encapsulate a single transformation step using a single transformer or a chain of transformation steps.
  */
-public interface Transformation extends Describable {
+public interface Transform extends Describable {
 
-    boolean endsWith(Transformation otherTransform);
+    boolean endsWith(Transform otherTransform);
 
     int stepsCount();
 
@@ -38,5 +38,5 @@ public interface Transformation extends Describable {
     /**
      * Extract the transformation steps from this transformation.
      */
-    void visitTransformationSteps(Action<? super TransformationStep> action);
+    void visitTransformSteps(Action<? super TransformStep> action);
 }

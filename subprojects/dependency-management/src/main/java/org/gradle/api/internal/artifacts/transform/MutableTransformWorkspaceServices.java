@@ -31,16 +31,16 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 
 @NotThreadSafe
-public class MutableTransformationWorkspaceServices implements TransformationWorkspaceServices, ReservedFileSystemLocation {
+public class MutableTransformWorkspaceServices implements TransformWorkspaceServices, ReservedFileSystemLocation {
 
-    private final Cache<UnitOfWork.Identity, Try<TransformationResult>> identityCache = new ManualEvictionInMemoryCache<>();
+    private final Cache<UnitOfWork.Identity, Try<TransformResult>> identityCache = new ManualEvictionInMemoryCache<>();
     private final Provider<Directory> baseDirectory;
     private final WorkspaceProvider workspaceProvider;
     private final ExecutionHistoryStore executionHistoryStore;
 
-    public MutableTransformationWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
+    public MutableTransformWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.baseDirectory = baseDirectory;
-        this.workspaceProvider = new MutableTransformationWorkspaceProvider();
+        this.workspaceProvider = new MutableTransformWorkspaceProvider();
         this.executionHistoryStore = executionHistoryStore;
     }
 
@@ -50,7 +50,7 @@ public class MutableTransformationWorkspaceServices implements TransformationWor
     }
 
     @Override
-    public Cache<UnitOfWork.Identity, Try<TransformationResult>> getIdentityCache() {
+    public Cache<UnitOfWork.Identity, Try<TransformResult>> getIdentityCache() {
         return identityCache;
     }
 
@@ -59,7 +59,7 @@ public class MutableTransformationWorkspaceServices implements TransformationWor
         return baseDirectory;
     }
 
-    private class MutableTransformationWorkspaceProvider implements WorkspaceProvider {
+    private class MutableTransformWorkspaceProvider implements WorkspaceProvider {
         @Override
         public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
             File workspaceDir = new File(baseDirectory.get().getAsFile(), path);

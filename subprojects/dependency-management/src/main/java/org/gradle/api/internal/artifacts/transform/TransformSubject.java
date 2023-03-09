@@ -26,10 +26,10 @@ import java.io.File;
 /**
  * Subject which is transformed or the result of a transformation.
  */
-public abstract class TransformationSubject implements Describable {
+public abstract class TransformSubject implements Describable {
 
-    public static TransformationSubject initial(ResolvableArtifact artifact) {
-        return new InitialArtifactTransformationSubject(artifact);
+    public static TransformSubject initial(ResolvableArtifact artifact) {
+        return new InitialArtifactTransformSubject(artifact);
     }
 
     /**
@@ -45,14 +45,14 @@ public abstract class TransformationSubject implements Describable {
     /**
      * Creates a subsequent subject by having transformed this subject.
      */
-    public TransformationSubject createSubjectFromResult(ImmutableList<File> result) {
-        return new SubsequentTransformationSubject(this, result);
+    public TransformSubject createSubjectFromResult(ImmutableList<File> result) {
+        return new SubsequentTransformSubject(this, result);
     }
 
-    private static class InitialArtifactTransformationSubject extends TransformationSubject {
+    private static class InitialArtifactTransformSubject extends TransformSubject {
         private final ResolvableArtifact artifact;
 
-        public InitialArtifactTransformationSubject(ResolvableArtifact artifact) {
+        public InitialArtifactTransformSubject(ResolvableArtifact artifact) {
             this.artifact = artifact;
         }
 
@@ -72,11 +72,11 @@ public abstract class TransformationSubject implements Describable {
         }
     }
 
-    private static class SubsequentTransformationSubject extends TransformationSubject {
-        private final TransformationSubject previous;
+    private static class SubsequentTransformSubject extends TransformSubject {
+        private final TransformSubject previous;
         private final ImmutableList<File> files;
 
-        public SubsequentTransformationSubject(TransformationSubject previous, ImmutableList<File> files) {
+        public SubsequentTransformSubject(TransformSubject previous, ImmutableList<File> files) {
             this.previous = previous;
             this.files = files;
         }

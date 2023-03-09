@@ -74,7 +74,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
     private final ArtifactTransformListener artifactTransformListener;
-    private final TransformationWorkspaceServices immutableWorkspaceProvider;
+    private final TransformWorkspaceServices immutableWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -83,7 +83,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         ExecutionEngine executionEngine,
         FileSystemAccess fileSystemAccess,
         ArtifactTransformListener artifactTransformListener,
-        TransformationWorkspaceServices immutableWorkspaceProvider,
+        TransformWorkspaceServices immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor
@@ -102,11 +102,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         Transformer transformer,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
-        TransformationSubject subject,
+        TransformSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
-        TransformationWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
+        TransformWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
         UnitOfWork execution;
         if (producerProject == null) {
@@ -145,15 +145,15 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
     }
 
-    private TransformationWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
+    private TransformWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
         if (producerProject == null) {
             return immutableWorkspaceProvider;
         }
-        return producerProject.getServices().get(TransformationWorkspaceServices.class);
+        return producerProject.getServices().get(TransformWorkspaceServices.class);
     }
 
     @Nullable
-    private ProjectInternal determineProducerProject(TransformationSubject subject) {
+    private ProjectInternal determineProducerProject(TransformSubject subject) {
         ComponentIdentifier componentIdentifier = subject.getInitialComponentIdentifier();
         if (componentIdentifier instanceof ProjectComponentIdentifier) {
             return projectStateRegistry.stateFor((ProjectComponentIdentifier) componentIdentifier).getMutableModel();
@@ -169,14 +169,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             Transformer transformer,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            TransformationSubject subject,
+            TransformSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             FileSystemAccess fileSystemAccess,
-            TransformationWorkspaceServices workspaceServices
+            TransformWorkspaceServices workspaceServices
         ) {
             super(
                 transformer, inputArtifact, dependencies, subject,
@@ -196,7 +196,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new ImmutableTransformationWorkspaceIdentity(
+            return new ImmutableTransformWorkspaceIdentity(
                 identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
                 identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
@@ -210,13 +210,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             Transformer transformer,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            TransformationSubject subject,
+            TransformSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
-            TransformationWorkspaceServices workspaceServices
+            TransformWorkspaceServices workspaceServices
         ) {
             super(
                 transformer, inputArtifact, dependencies, subject,
@@ -226,7 +226,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new MutableTransformationWorkspaceIdentity(
+            return new MutableTransformWorkspaceIdentity(
                 inputArtifact.getAbsolutePath(),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
                 identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
@@ -238,7 +238,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         protected final Transformer transformer;
         protected final File inputArtifact;
         private final ArtifactTransformDependencies dependencies;
-        private final TransformationSubject subject;
+        private final TransformSubject subject;
 
         private final ArtifactTransformListener artifactTransformListener;
         private final BuildOperationExecutor buildOperationExecutor;
@@ -246,19 +246,19 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         private final Provider<FileSystemLocation> inputArtifactProvider;
         protected final InputFingerprinter inputFingerprinter;
-        private final TransformationWorkspaceServices workspaceServices;
+        private final TransformWorkspaceServices workspaceServices;
 
         public AbstractTransformerExecution(
             Transformer transformer,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            TransformationSubject subject,
+            TransformSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
-            TransformationWorkspaceServices workspaceServices
+            TransformWorkspaceServices workspaceServices
         ) {
             this.transformer = transformer;
             this.inputArtifact = inputArtifact;
@@ -284,13 +284,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         private WorkOutput executeWithinTransformerListener(ExecutionRequest executionRequest) {
-            TransformationResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformationResult>() {
+            TransformResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformResult>() {
                 @Override
-                public TransformationResult call(BuildOperationContext context) {
+                public TransformResult call(BuildOperationContext context) {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
-                    TransformationResult result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
+                    TransformResult result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
+                    TransformResultSerializer resultSerializer = new TransformResultSerializer(getOutputDir(workspace));
                     resultSerializer.writeToFile(getResultsFile(workspace), result);
                     return result;
                 }
@@ -318,7 +318,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Object loadAlreadyProducedOutput(File workspace) {
-            TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
+            TransformResultSerializer resultSerializer = new TransformResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
 
@@ -415,13 +415,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
     }
 
-    private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
+    private static class ImmutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
         private final ValueSnapshot inputArtifactPath;
         private final ValueSnapshot inputArtifactSnapshot;
         private final ValueSnapshot secondaryInputSnapshot;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+        public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
             this.inputArtifactPath = inputArtifactPath;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
             this.secondaryInputSnapshot = secondaryInputSnapshot;
@@ -447,7 +447,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 return false;
             }
 
-            ImmutableTransformationWorkspaceIdentity that = (ImmutableTransformationWorkspaceIdentity) o;
+            ImmutableTransformWorkspaceIdentity that = (ImmutableTransformWorkspaceIdentity) o;
 
             if (!inputArtifactPath.equals(that.inputArtifactPath)) {
                 return false;
@@ -471,12 +471,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
     }
 
-    public static class MutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
+    public static class MutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
         private final String inputArtifactAbsolutePath;
         private final ValueSnapshot secondaryInputsSnapshot;
         private final HashCode dependenciesHash;
 
-        public MutableTransformationWorkspaceIdentity(String inputArtifactAbsolutePath, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
+        public MutableTransformWorkspaceIdentity(String inputArtifactAbsolutePath, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
             this.inputArtifactAbsolutePath = inputArtifactAbsolutePath;
             this.secondaryInputsSnapshot = secondaryInputsSnapshot;
             this.dependenciesHash = dependenciesHash;
@@ -500,7 +500,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 return false;
             }
 
-            MutableTransformationWorkspaceIdentity that = (MutableTransformationWorkspaceIdentity) o;
+            MutableTransformWorkspaceIdentity that = (MutableTransformWorkspaceIdentity) o;
 
             if (!secondaryInputsSnapshot.equals(that.secondaryInputsSnapshot)) {
                 return false;

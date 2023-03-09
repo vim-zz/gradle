@@ -24,7 +24,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
-    public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformationStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
+    public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
 
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
@@ -46,8 +46,8 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     }
 
     @Override
-    public TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation) {
-        if (!transformation.requiresDependencies()) {
+    public TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, Transform transform) {
+        if (!transform.requiresDependencies()) {
             return NO_DEPENDENCIES_RESOLVER;
         }
         return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, configurationIdentity, resolutionResultProvider, owner, filteredResultFactory, calculatedValueContainerFactory);

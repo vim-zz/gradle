@@ -16,19 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.NonNullApi;
-
-import java.util.Collection;
-
-@NonNullApi
-public class DefaultTransformationDependency implements TransformationDependency {
-    private final Collection<TransformationNode> nodes;
-
-    public DefaultTransformationDependency(Collection<TransformationNode> nodes) {
-        this.nodes = nodes;
-    }
-
-    public Collection<TransformationNode> getNodes() {
-        return nodes;
-    }
+/**
+ * Empty interface for now to signal a dependency on an artifact transformation.
+ */
+public interface TransformDependency {
 }

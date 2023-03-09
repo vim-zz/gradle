@@ -25,37 +25,37 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Collection;
 
-public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
+public class DefaultTransformStepNodeFactory implements TransformStepNodeFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public DefaultTransformationNodeFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultTransformStepNodeFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
-    public Collection<TransformationNode> create(
+    public Collection<TransformStepNode> create(
         ResolvedArtifactSet artifactSet,
         ComponentVariantIdentifier targetComponentVariant,
-        TransformationStep transformationStep,
+        TransformStep transformStep,
         AttributeContainer sourceAttributes,
         TransformUpstreamDependenciesResolver dependenciesResolver
     ) {
-        final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
+        final ImmutableList.Builder<TransformStepNode> builder = ImmutableList.builder();
         artifactSet.visitTransformSources(new ResolvedArtifactSet.TransformSourceVisitor() {
             @Override
             public void visitArtifact(ResolvableArtifact artifact) {
-                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = TransformationNode.initial(targetComponentVariant, sourceAttributes, transformationStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-                builder.add(transformationNode);
+                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
+                TransformStepNode transformStepNode = TransformStepNode.initial(targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                builder.add(transformStepNode);
             }
 
             @Override
-            public void visitTransform(TransformationNode source) {
-                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = TransformationNode.chained(targetComponentVariant, sourceAttributes, transformationStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-                builder.add(transformationNode);
+            public void visitTransform(TransformStepNode source) {
+                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
+                TransformStepNode transformStepNode = TransformStepNode.chained(targetComponentVariant, sourceAttributes, transformStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                builder.add(transformStepNode);
             }
         });
         return builder.build();
