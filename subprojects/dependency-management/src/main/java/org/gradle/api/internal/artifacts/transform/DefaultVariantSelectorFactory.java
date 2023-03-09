@@ -20,13 +20,13 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
-public class DefaultArtifactTransforms implements ArtifactTransforms {
+public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
 
-    public DefaultArtifactTransforms(
+    public DefaultVariantSelectorFactory(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,

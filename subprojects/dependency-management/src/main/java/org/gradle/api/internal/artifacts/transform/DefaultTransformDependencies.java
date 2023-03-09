@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,19 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.file.FileCollection;
 
-public interface ArtifactTransforms {
-    /**
-     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
-     */
-    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, boolean selectFromAllVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver);
+import java.util.Optional;
+
+public class DefaultTransformDependencies implements TransformDependencies {
+    private final FileCollection files;
+
+    public DefaultTransformDependencies(FileCollection files) {
+        this.files = files;
+    }
+
+    @Override
+    public Optional<FileCollection> getFiles() {
+        return Optional.of(files);
+    }
 }

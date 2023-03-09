@@ -101,7 +101,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     public Deferrable<Try<ImmutableList<File>>> createInvocation(
         Transformer transformer,
         File inputArtifact,
-        ArtifactTransformDependencies dependencies,
+        TransformDependencies dependencies,
         TransformSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
@@ -168,7 +168,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public ImmutableTransformerExecution(
             Transformer transformer,
             File inputArtifact,
-            ArtifactTransformDependencies dependencies,
+            TransformDependencies dependencies,
             TransformSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
@@ -209,7 +209,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public MutableTransformerExecution(
             Transformer transformer,
             File inputArtifact,
-            ArtifactTransformDependencies dependencies,
+            TransformDependencies dependencies,
             TransformSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
@@ -237,7 +237,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private abstract static class AbstractTransformerExecution implements UnitOfWork {
         protected final Transformer transformer;
         protected final File inputArtifact;
-        private final ArtifactTransformDependencies dependencies;
+        private final TransformDependencies dependencies;
         private final TransformSubject subject;
 
         private final ArtifactTransformListener artifactTransformListener;
@@ -251,7 +251,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public AbstractTransformerExecution(
             Transformer transformer,
             File inputArtifact,
-            ArtifactTransformDependencies dependencies,
+            TransformDependencies dependencies,
             TransformSubject subject,
 
             ArtifactTransformListener artifactTransformListener,

@@ -18,7 +18,7 @@ package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -32,12 +32,12 @@ import org.gradle.internal.operations.BuildOperationExecutor
 
 
 class IsolateTransformerParametersNodeCodec(
-    val parameterScheme: ArtifactTransformParameterScheme,
-    val isolatableFactory: IsolatableFactory,
-    val buildOperationExecutor: BuildOperationExecutor,
-    val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
-    val fileCollectionFactory: FileCollectionFactory,
-    val documentationRegistry: DocumentationRegistry
+        val parameterScheme: TransformParameterScheme,
+        val isolatableFactory: IsolatableFactory,
+        val buildOperationExecutor: BuildOperationExecutor,
+        val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+        val fileCollectionFactory: FileCollectionFactory,
+        val documentationRegistry: DocumentationRegistry
 ) : Codec<DefaultTransformer.IsolateTransformerParameters> {
     override suspend fun WriteContext.encode(value: DefaultTransformer.IsolateTransformerParameters) {
         write(value.parameterObject)

@@ -57,7 +57,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     boolean isCacheable();
 
-    TransformResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges);
+    TransformResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges);
 
     /**
      * The hash of the secondary inputs of the transformer.

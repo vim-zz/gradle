@@ -75,11 +75,11 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
+import org.gradle.api.internal.artifacts.transform.TransformActionScheme;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
+import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.DefaultVariantSelectorFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
@@ -240,8 +240,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 TransformerInvocationFactory transformerInvocationFactory,
                 DomainObjectContext domainObjectContext,
-                ArtifactTransformParameterScheme parameterScheme,
-                ArtifactTransformActionScheme actionScheme,
+                TransformParameterScheme parameterScheme,
+                TransformActionScheme actionScheme,
                 InputFingerprinter inputFingerprinter,
                 CalculatedValueContainerFactory calculatedValueContainerFactory,
                 FileCollectionFactory fileCollectionFactory,
@@ -266,7 +266,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
         }
 
-        VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, ArtifactTransformParameterScheme parameterScheme) {
+        VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, TransformParameterScheme parameterScheme) {
             return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme());
         }
 
@@ -527,7 +527,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     resolutionResultsStoreFactory,
                                     startParameter.isBuildProjectDependencies(),
                                     attributesSchema,
-                                    new DefaultArtifactTransforms(
+                                    new DefaultVariantSelectorFactory(
                                             new ConsumerProvidedVariantFinder(
                                                     variantTransforms,
                                                     attributesSchema,

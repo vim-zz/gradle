@@ -113,7 +113,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
     }
 
-    def dependencies = Stub(ArtifactTransformDependencies) {
+    def dependencies = Stub(TransformDependencies) {
         getFiles() >> Optional.empty()
     }
 
@@ -207,7 +207,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        TransformResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+        TransformResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, InputChanges inputChanges) {
             def builder = TransformResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
             transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
                 builder.addOutput(it) {}
@@ -517,11 +517,11 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     }
 
     private Try<ImmutableList<File>> invoke(
-            Transformer transformer,
-            File inputArtifact,
-            ArtifactTransformDependencies dependencies,
-            TransformSubject subject,
-            InputFingerprinter inputFingerprinter
+        Transformer transformer,
+        File inputArtifact,
+        TransformDependencies dependencies,
+        TransformSubject subject,
+        InputFingerprinter inputFingerprinter
     ) {
         return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).completeAndGet()
     }

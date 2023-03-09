@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 
 import java.util.Optional;
 
-public interface ArtifactTransformDependencies {
+public interface TransformDependencies {
     /**
      * Returns the dependency artifacts of the artifact being transformed.
      * The order of the files match that of the dependencies in the source artifact view.

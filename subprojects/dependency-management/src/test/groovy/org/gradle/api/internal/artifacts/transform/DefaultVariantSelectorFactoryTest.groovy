@@ -36,7 +36,7 @@ import spock.lang.Specification
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
-class DefaultArtifactTransformsTest extends Specification {
+class DefaultVariantSelectorFactoryTest extends Specification {
     def matchingCache = Mock(ConsumerProvidedVariantFinder)
     def producerSchema = Mock(AttributesSchemaInternal)
     def consumerSchema = Mock(AttributesSchemaInternal) {
@@ -46,7 +46,7 @@ class DefaultArtifactTransformsTest extends Specification {
     def factory = Mock(VariantSelector.Factory)
     def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory)
+    def transforms = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()
