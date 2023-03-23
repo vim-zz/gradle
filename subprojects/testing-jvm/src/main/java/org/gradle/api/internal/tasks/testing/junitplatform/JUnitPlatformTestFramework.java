@@ -107,7 +107,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public List<TestFrameworkDistributionModule> getWorkerApplicationModulepathModules() {
+    public List<TestFrameworkDistributionModule> getWorkerImplementationModulepathModules() {
         return DISTRIBUTION_MODULES;
     }
 

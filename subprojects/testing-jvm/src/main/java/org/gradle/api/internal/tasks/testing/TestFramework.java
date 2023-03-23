@@ -68,34 +68,6 @@ public interface TestFramework extends Closeable {
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
     /**
-     * Returns a list of distribution modules that the test worker requires on the application classpath.
-     * These dependencies are loaded from the Gradle distribution.
-     *
-     * Application classes specified by {@link WorkerProcessBuilder#sharedPackages} are
-     * also included in the implementation classpath.
-     *
-     * @see #getUseDistributionDependencies()
-     */
-    @Internal
-    default List<TestFrameworkDistributionModule> getWorkerApplicationClasspathModules() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Returns a list of distribution modules that the test worker requires on the application modulepath if it runs as a module.
-     * These dependencies are loaded from the Gradle distribution.
-     *
-     * Application classes specified by {@link WorkerProcessBuilder#sharedPackages} are
-     * also included in the implementation classpath.
-     *
-     * @see #getUseDistributionDependencies()
-     */
-    @Internal
-    default List<TestFrameworkDistributionModule> getWorkerApplicationModulepathModules() {
-        return Collections.emptyList();
-    }
-
-    /**
      * Returns a list of distribution modules that the test worker requires on implementation the classpath.
      * These dependencies are loaded from the Gradle distribution.
      *

@@ -48,7 +48,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
     def "creates a limited implementation classpath"() {
         when:
-        def framework = newFramework(false, [], [], [], [])
+        def framework = newFramework(false, [], [])
         def classpath = underTest.create([new File("cls.jar")], [new File("mod.jar")], framework, false)
 
         then:
@@ -64,7 +64,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
     def "adds framework dependencies to classpath when test is not module"() {
         when:
-        def framework = newFramework(true, ["app-cls"], ["app-mod"], ["impl-cls"], ["impl-mod"])
+        def framework = newFramework(true, ["impl-cls"], ["impl-mod"])
         def classpath = underTest.create([new File("cls.jar")], [new File("mod.jar")], framework, false)
 
         then:
@@ -79,7 +79,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
     def "adds framework dependencies to classpath and modulepath when test is module"() {
         when:
-        def framework = newFramework(true, ["app-cls"], ["app-mod"], ["impl-cls"], ["impl-mod"])
+        def framework = newFramework(true, ["impl-cls"], ["impl-mod"])
         def classpath = underTest.create([new File("cls.jar")], [new File("mod.jar")], framework, true)
 
         then:
@@ -94,7 +94,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
     def "does not load framework dependencies from distribution if they are on the test runtime classpath already with matching jar names"() {
         when:
-        def framework = newFramework(true, ["app-cls"], ["app-mod"], ["impl-cls"], ["impl-mod"])
+        def framework = newFramework(true, ["impl-cls"], ["impl-mod"])
         def classpath = underTest.create([
             new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")
         ], [], framework, true)
@@ -112,7 +112,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
     def "does not load framework dependencies from distribution if they are on the test runtime modulepath already with matching jar names"() {
         when:
-        def framework = newFramework(true, ["app-cls"], ["app-mod"], ["impl-cls"], ["impl-mod"])
+        def framework = newFramework(true, ["impl-cls"], ["impl-mod"])
         def classpath = underTest.create([], [
             new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")
         ], framework, true)
@@ -133,7 +133,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         def cpFiles = cp.collect { new File("$it-1.0.jar") }
         def mpFiles = mp.collect { new File("$it-1.0.jar") }
 
-        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
+        def framework = newFramework(true, ["e", "f"], ["g", "h"])
         def classpath = underTest.create(cpFiles, mpFiles, framework, true)
 
         then:
@@ -179,7 +179,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         def cpFiles = cp.collect { new File("$it-1.0.jar") }
         def mpFiles = mp.collect { new File("$it-1.0.jar") }
 
-        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
+        def framework = newFramework(true, ["e", "f"], ["g", "h"])
         def classpath = underTest.create(cpFiles, mpFiles, framework, true)
 
         then:
@@ -233,8 +233,6 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
     TestFramework newFramework(
         boolean useDependencies,
-        List<String> appClasses,
-        List<String> appModules,
         List<String> implClasses,
         List<String> implModules
     ) {
@@ -243,8 +241,6 @@ class ForkedTestClasspathFactoryTest extends Specification {
         }
         return Mock(TestFramework) {
             getUseDistributionDependencies() >> useDependencies
-            getWorkerApplicationClasspathModules() >> appClasses.collect { asDistModule(it) }
-            getWorkerApplicationModulepathModules() >> appModules.collect { asDistModule(it) }
             getWorkerImplementationClasspathModules() >> implClasses.collect { asDistModule(it) }
             getWorkerImplementationModulepathModules() >> implModules.collect { asDistModule(it) }
         }

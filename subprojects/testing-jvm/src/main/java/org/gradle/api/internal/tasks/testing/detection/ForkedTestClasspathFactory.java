@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule;
 import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
@@ -40,7 +39,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Constructs the application and implementation classpaths for a test process,
@@ -80,8 +78,6 @@ public class ForkedTestClasspathFactory {
         }
 
         AdditionalClasspath unfiltered = new AdditionalClasspath(
-            testFramework.getWorkerApplicationClasspathModules(),
-            testFramework.getWorkerApplicationModulepathModules(),
             testFramework.getWorkerImplementationClasspathModules(),
             testFramework.getWorkerImplementationModulepathModules()
         );
@@ -132,24 +128,20 @@ public class ForkedTestClasspathFactory {
 
         if (isModule) {
             return new ForkedTestClasspath(
-                pathWithAdditionalModules(classpath, additional.applicationClasspath),
-                pathWithAdditionalModules(modulepath, additional.applicationModulepath),
+                ImmutableList.copyOf(classpath),
+                ImmutableList.copyOf(modulepath),
                 withImplementation(loadDistributionUrls(additional.implementationClasspath)),
                 loadDistributionUrls(additional.implementationModulepath)
             );
         } else {
             // For non-module tests, add all additional distribution modules to the classpath.
-            List<TestFrameworkDistributionModule> additionalApplicationClasspath = ImmutableList.<TestFrameworkDistributionModule>builder()
-                .addAll(additional.applicationClasspath)
-                .addAll(additional.applicationModulepath)
-                .build();
             List<TestFrameworkDistributionModule> additionalImplementationClasspath = ImmutableList.<TestFrameworkDistributionModule>builder()
                 .addAll(additional.implementationClasspath)
                 .addAll(additional.implementationModulepath)
                 .build();
 
             return new ForkedTestClasspath(
-                pathWithAdditionalModules(classpath, additionalApplicationClasspath),
+                ImmutableList.copyOf(classpath),
                 ImmutableList.copyOf(modulepath),
                 withImplementation(loadDistributionUrls(additionalImplementationClasspath)),
                 ImmutableList.of()
@@ -192,32 +184,8 @@ public class ForkedTestClasspathFactory {
         ));
     }
 
-    /**
-     * Create a classpath or modulepath, as a list of files, given both the files provided by the test spec and a list of
-     * modules to load from the Gradle distribution.
-     *
-     * @param testFiles A set of jars, as given from a {@link JvmTestExecutionSpec}'s classpath or modulePath.
-     * @param additionalModules The names of any additional modules to load from the Gradle distribution.
-     *
-     * @return A set of files representing the constructed classpath or modulePath.
-     */
-    private ImmutableList<File> pathWithAdditionalModules(Iterable<? extends File> testFiles, List<TestFrameworkDistributionModule> additionalModules) {
-        return ImmutableList.<File>builder()
-            .addAll(loadDistributionFiles(additionalModules))
-            .addAll(testFiles)
-            .build();
-    }
-
-    private ImmutableList<File> loadDistributionFiles(List<TestFrameworkDistributionModule> moduleNames) {
-        return loadFromDistribution(moduleNames, ClassPath::getAsFiles);
-    }
-
     private ImmutableList<URL> loadDistributionUrls(List<TestFrameworkDistributionModule> moduleNames) {
-        return loadFromDistribution(moduleNames, ClassPath::getAsURLs);
-    }
-
-    private <T> ImmutableList<T> loadFromDistribution(List<TestFrameworkDistributionModule> moduleNames, Function<ClassPath, List<T>> extractor) {
-        ImmutableList.Builder<T> outputFiles = ImmutableList.builder();
+        ImmutableList.Builder<URL> outputFiles = ImmutableList.builder();
 
         if (LOGGER.isDebugEnabled() && !moduleNames.isEmpty()) {
             LOGGER.debug("Loaded additional modules from the Gradle distribution: " + Joiner.on(",").join(moduleNames));
@@ -225,7 +193,7 @@ public class ForkedTestClasspathFactory {
 
         for (TestFrameworkDistributionModule module : moduleNames) {
             ClassPath cp = moduleRegistry.getExternalModule(module.getModuleName()).getImplementationClasspath();
-            outputFiles.addAll(extractor.apply(cp));
+            outputFiles.addAll(cp.getAsURLs());
         }
 
         return outputFiles.build();
@@ -233,26 +201,19 @@ public class ForkedTestClasspathFactory {
 
     private static class AdditionalClasspath {
 
-        public final List<TestFrameworkDistributionModule> applicationClasspath;
-        public final List<TestFrameworkDistributionModule> applicationModulepath;
         public final List<TestFrameworkDistributionModule> implementationClasspath;
         public final List<TestFrameworkDistributionModule> implementationModulepath;
 
         public AdditionalClasspath(
-            List<TestFrameworkDistributionModule> applicationClasspath,
-            List<TestFrameworkDistributionModule> applicationModulepath,
             List<TestFrameworkDistributionModule> implementationClasspath,
             List<TestFrameworkDistributionModule> implementationModulepath
         ) {
-            this.applicationClasspath = applicationClasspath;
-            this.applicationModulepath = applicationModulepath;
             this.implementationClasspath = implementationClasspath;
             this.implementationModulepath = implementationModulepath;
         }
 
         public boolean isEmpty() {
-            return applicationClasspath.isEmpty() && applicationModulepath.isEmpty() &&
-                implementationClasspath.isEmpty() && implementationModulepath.isEmpty();
+            return implementationClasspath.isEmpty() && implementationModulepath.isEmpty();
         }
     }
 
@@ -277,10 +238,8 @@ public class ForkedTestClasspathFactory {
     /**
      * Filters additional modules based on jar file names.
      */
-    private AdditionalClasspath filterFast(Iterable<? extends File> classpath, Iterable<? extends File> modulepath, AdditionalClasspath unfiltered) {
+    private static AdditionalClasspath filterFast(Iterable<? extends File> classpath, Iterable<? extends File> modulepath, AdditionalClasspath unfiltered) {
         AdditionalClasspath mutable = new AdditionalClasspath(
-            new ArrayList<>(unfiltered.applicationClasspath),
-            new ArrayList<>(unfiltered.applicationModulepath),
             new ArrayList<>(unfiltered.implementationClasspath),
             new ArrayList<>(unfiltered.implementationModulepath)
         );
@@ -289,8 +248,6 @@ public class ForkedTestClasspathFactory {
         Iterator<? extends File> it = classpath.iterator();
         while (it.hasNext() && !mutable.isEmpty()) {
             String name = it.next().getName();
-            mutable.applicationClasspath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
-            mutable.applicationModulepath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
             mutable.implementationClasspath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
             mutable.implementationModulepath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
         }
@@ -299,8 +256,6 @@ public class ForkedTestClasspathFactory {
         it = modulepath.iterator();
         while (it.hasNext() && !mutable.isEmpty()) {
             String name = it.next().getName();
-            mutable.applicationClasspath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
-            mutable.applicationModulepath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
             mutable.implementationClasspath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
             mutable.implementationModulepath.removeIf(module -> module.getJarFilePattern().matcher(name).matches());
         }
@@ -314,8 +269,6 @@ public class ForkedTestClasspathFactory {
     private AdditionalClasspath filterSlow(Iterable<? extends File> classpath, Iterable<? extends File> modulepath, AdditionalClasspath unfiltered) {
         try (ClassDetector classDetector = classDetectorFactory.create(classpath, modulepath)) {
             return new AdditionalClasspath(
-                classDetector.withoutDetectedModules(unfiltered.applicationClasspath),
-                classDetector.withoutDetectedModules(unfiltered.applicationModulepath),
                 classDetector.withoutDetectedModules(unfiltered.implementationClasspath),
                 classDetector.withoutDetectedModules(unfiltered.implementationModulepath)
             );

@@ -53,8 +53,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private boolean stoppedNow;
     private final Set<Throwable> unrecoverableExceptions = Sets.newHashSet();
 
-
-
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry,
         WorkerProcessFactory workerFactory,

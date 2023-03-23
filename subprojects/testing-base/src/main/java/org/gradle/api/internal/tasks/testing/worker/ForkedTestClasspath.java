@@ -37,7 +37,7 @@ public class ForkedTestClasspath {
     private final ImmutableList<File> applicationClasspath;
     private final ImmutableList<File> applicationModulepath;
     private final ImmutableList<URL> implementationClasspath;
-    public final ImmutableList<URL> implementationModulepath;
+    private final ImmutableList<URL> implementationModulepath;
 
     public ForkedTestClasspath(
         ImmutableList<File> applicationClasspath,
