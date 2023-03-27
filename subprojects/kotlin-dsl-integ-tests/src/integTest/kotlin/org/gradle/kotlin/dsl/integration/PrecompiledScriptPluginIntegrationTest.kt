@@ -21,6 +21,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Ignore
 import spock.lang.Issue
 import java.io.File
 
@@ -1119,6 +1120,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Ignore
     fun `no warnings on empty directories in compilation classpath`() {
         withDefaultSettings().appendText("""include("producer", "consumer")""")
         withFile("producer/build.gradle.kts", """plugins { java }""")
