@@ -15,4 +15,5 @@ dependencies {
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
+    implementation("org.graalvm.buildtools:native-gradle-plugin:0.9.20")
 }

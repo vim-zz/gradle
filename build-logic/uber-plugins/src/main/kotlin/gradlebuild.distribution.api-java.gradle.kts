@@ -17,4 +17,5 @@
 plugins {
     id("gradlebuild.distribution-module")
     id("gradlebuild.distribution.api")
+    id("org.graalvm.buildtools.native")
 }

@@ -16,4 +16,5 @@
 
 plugins {
     id("gradlebuild.java-library")
+    id("org.graalvm.buildtools.native")
 }
