@@ -72,7 +72,7 @@ gradle.taskGraph.whenReady {
         }
 
         then:
-        !result.output.contains("ctrl-d")
+        result.output.contains("ctrl-d")
         result.output.contains(waitingMessage)
     }
 
