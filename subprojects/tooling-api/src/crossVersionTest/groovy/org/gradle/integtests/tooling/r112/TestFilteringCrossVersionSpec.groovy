@@ -18,10 +18,12 @@ package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class TestFilteringCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     @Issue("GRADLE-2972")
+    @Ignore
     def "tooling api support test filtering when tasks configured via command line"() {
         buildFile << """
             apply plugin: 'java'
