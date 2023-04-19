@@ -171,7 +171,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
-                throw new RuntimeException("Fuck1");
+                throw new RuntimeException("Fuck1", ex);
             } catch (NativeException ex) {
                 if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
