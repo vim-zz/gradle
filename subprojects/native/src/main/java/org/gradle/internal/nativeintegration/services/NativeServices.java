@@ -186,6 +186,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
             LOGGER.info("Initialized native services in: {}", nativeBaseDir);
         }
+
+        if (!useNativeIntegrations) {
+            throw new RuntimeException("Fuck");
+        }
     }
 
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
