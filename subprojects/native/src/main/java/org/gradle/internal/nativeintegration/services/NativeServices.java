@@ -171,24 +171,25 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
+                throw new RuntimeException("Fuck1");
             } catch (NativeException ex) {
                 if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
+                    throw new RuntimeException("Fuck2");
                 } else if (ex.getMessage().equals("Could not extract native JNI library.")
                     && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
                     //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
+                    throw new RuntimeException("Fuck3");
                 } else {
                     throw ex;
                 }
             }
             LOGGER.info("Initialized native services in: {}", nativeBaseDir);
-        }
-
-        if (!useNativeIntegrations) {
-            throw new RuntimeException("Fuck");
+        } else {
+            throw new RuntimeException("Fuck4");
         }
     }
 
