@@ -1303,7 +1303,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 !canBeDeclaredAgainst || declarationAlternatives != null);
 
 
-        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
+        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
@@ -1351,7 +1351,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return copiedConfiguration;
     }
 
-    private DefaultConfiguration newConfiguration(ConfigurationRole role, boolean usageCanBeMutated) {
+    private DefaultConfiguration newConfiguration(ConfigurationRole role) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
 
@@ -1364,7 +1364,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             childResolutionStrategy,
             rootComponentMetadataBuilder,
             role,
-            usageCanBeMutated
+            false
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
