@@ -199,6 +199,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
+    @Deprecated
     public void setMode(int mode) {
         FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, mode);
         getPermissions().set(permissions);

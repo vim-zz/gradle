@@ -127,6 +127,7 @@ public class SingleFileTreeElementMatcher {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
             return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
         }

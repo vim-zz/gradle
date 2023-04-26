@@ -146,6 +146,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
             return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
         }
@@ -227,6 +228,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
             return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
         }
