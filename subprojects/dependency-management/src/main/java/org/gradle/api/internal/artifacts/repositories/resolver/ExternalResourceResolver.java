@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
@@ -106,19 +107,20 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
 
-    protected ExternalResourceResolver(String name,
-                                       boolean local,
-                                       ExternalResourceRepository repository,
-                                       CacheAwareExternalResourceAccessor cachingResourceAccessor,
-                                       LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                       ImmutableMetadataSources metadataSources,
-                                       MetadataArtifactProvider metadataArtifactProvider,
-                                       @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                                       @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
-                                       Instantiator injector,
-                                       ChecksumService checksumService) {
-        this.name = name;
+    protected ExternalResourceResolver(
+        RepositoryDescriptor descriptor,
+        boolean local,
+        ExternalResourceRepository repository,
+        CacheAwareExternalResourceAccessor cachingResourceAccessor,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        ImmutableMetadataSources metadataSources,
+        MetadataArtifactProvider metadataArtifactProvider,
+        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
+        @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
+        Instantiator injector,
+        ChecksumService checksumService) {
+        this.name = descriptor.name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
         this.repository = repository;

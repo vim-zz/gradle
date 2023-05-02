@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -46,7 +47,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
     public IvyResolver(
-        String name,
+        IvyRepositoryDescriptor descriptor,
         RepositoryTransport transport,
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
         boolean dynamicResolve,
@@ -58,7 +59,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         Instantiator injector, ChecksumService checksumService
     ) {
         super(
-            name,
+            descriptor,
             transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),

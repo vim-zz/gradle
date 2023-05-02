@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadata;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -61,19 +62,20 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
-    public MavenResolver(String name,
-                         URI rootUri,
-                         RepositoryTransport transport,
-                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                         ImmutableMetadataSources metadataSources,
-                         MetadataArtifactProvider metadataArtifactProvider,
-                         MavenMetadataLoader mavenMetadataLoader,
-                         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
-                         Instantiator injector,
-                         ChecksumService checksumService) {
-        super(name, transport.isLocal(),
+    public MavenResolver(
+        MavenRepositoryDescriptor descriptor,
+        URI rootUri,
+        RepositoryTransport transport,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        ImmutableMetadataSources metadataSources,
+        MetadataArtifactProvider metadataArtifactProvider,
+        MavenMetadataLoader mavenMetadataLoader,
+        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
+        @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
+        Instantiator injector,
+        ChecksumService checksumService) {
+        super(descriptor, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
             locallyAvailableResourceFinder,

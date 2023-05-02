@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.FlatDirRepositoryDescriptor;
-import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -57,7 +57,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository {
+public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository<FlatDirRepositoryDescriptor> implements FlatDirectoryArtifactRepository, ResolutionAwareRepository {
     private final FileCollectionFactory fileCollectionFactory;
     private final List<Object> dirs = new ArrayList<>();
     private final RepositoryTransportFactory transportFactory;
@@ -130,7 +130,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     @Override
-    protected RepositoryDescriptor createDescriptor() {
+    protected FlatDirRepositoryDescriptor createDescriptor() {
         return new FlatDirRepositoryDescriptor(
             getName(),
             getDirs()
@@ -144,14 +144,17 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     private IvyResolver createRealResolver() {
-        Set<File> dirs = getDirs();
+        FlatDirRepositoryDescriptor descriptor = getDescriptor();
+        List<File> dirs = descriptor.dirs;
         if (dirs.isEmpty()) {
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
+        IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(descriptor.name, null);
+        IvyRepositoryDescriptor ivyDescriptor = builder.create();
 
         RepositoryTransport transport = transportFactory.createFileTransport(getName());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
+        IvyResolver resolver = new IvyResolver(ivyDescriptor, transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");
