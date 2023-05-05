@@ -22,7 +22,7 @@ import org.junit.Assume
 import spock.lang.Issue
 
 
-class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
+class AbstractComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
     boolean isWellBehaved(boolean mavenCompatible, boolean gradleCompatible = true) {
         (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataPublished || gradleCompatible)
     }
