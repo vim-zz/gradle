@@ -90,7 +90,6 @@ class FunctionalTest(
         preSteps = preBuildSteps
     )
 
-
     triggers {
         retryBuild {
             attempts = 1
