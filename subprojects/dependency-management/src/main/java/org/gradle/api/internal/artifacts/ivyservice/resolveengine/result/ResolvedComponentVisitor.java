@@ -44,4 +44,9 @@ public interface ResolvedComponentVisitor {
      * Visit variants of the component.
      */
     void visitComponentVariants(List<ResolvedVariantResult> allVariants);
+
+    /**
+     * Finishes visiting a component.
+     */
+    void endVisitComponent();
 }

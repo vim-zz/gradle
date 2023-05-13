@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -66,6 +67,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
         builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null);
         builder.visitComponentDetails(componentIdentifier, id);
         builder.visitComponentVariants(Collections.emptyList());
+        builder.endVisitComponent();
         return builder.complete(0L);
     }
 
@@ -99,6 +101,11 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
 
     @Override
     public void visitComponentVariants(List<ResolvedVariantResult> allVariants) {
+        this.allVariants = ImmutableList.copyOf(allVariants);
+    }
+
+    @Override
+    public void endVisitComponent() {
         // The nodes in the graph represent variants (mostly) and multiple variants of a component may be included in the graph, so a given component may be visited multiple times
         if (!components.containsKey(id)) {
             components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoName));

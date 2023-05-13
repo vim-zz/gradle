@@ -244,6 +244,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         builder.visitComponentDetails(moduleVersion.componentId, moduleVersion.moduleVersion)
         builder.visitSelectedVariant(moduleVersion.resultId, Stub(ResolvedVariantResult))
         builder.visitComponentVariants([])
+        builder.endVisitComponent()
     }
 
     private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {

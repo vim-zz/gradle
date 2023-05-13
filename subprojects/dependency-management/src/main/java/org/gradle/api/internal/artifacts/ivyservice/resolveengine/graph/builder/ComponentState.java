@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -301,11 +300,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ImmutableList.Builder<ResolvedGraphVariant> builder = ImmutableList.builder();
         addSelectedVariants(builder::add);
         return builder.build();
-    }
-
-    @Override
-    public List<ResolvedVariantResult> getAvailableVariants() {
-        return resolveState.getAllSelectableVariantResults();
     }
 
     private void addSelectedVariants(Consumer<ResolvedGraphVariant> consumer) {
