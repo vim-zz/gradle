@@ -106,6 +106,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return id;
     }
 
+    @Nullable
+    @Override
+    public String getRepositoryName() {
+        return graphResolveState.getRepositoryName();
+    }
+
     @Override
     public ModuleVersionIdentifier getModuleVersion() {
         return id;

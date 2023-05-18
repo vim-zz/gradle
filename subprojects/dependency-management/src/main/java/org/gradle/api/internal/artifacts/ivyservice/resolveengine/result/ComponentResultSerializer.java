@@ -55,7 +55,8 @@ public class ComponentResultSerializer {
     public void readInto(Decoder decoder, ResolvedComponentVisitor builder) throws Exception {
         long resultId = decoder.readSmallLong();
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
-        builder.startVisitComponent(resultId, reason);
+        String repo = decoder.readNullableString();
+        builder.startVisitComponent(resultId, reason, repo);
         componentDetailsSerializer.readComponentDetails(decoder, builder);
         int variantCount = decoder.readSmallInt();
         for (int i = 0; i < variantCount; i++) {
@@ -84,7 +85,8 @@ public class ComponentResultSerializer {
     public void write(Encoder encoder, ResolvedGraphComponent value) throws IOException {
         encoder.writeSmallLong(value.getResultId());
         reasonSerializer.write(encoder, value.getSelectionReason());
-        componentDetailsSerializer.writeComponentDetails(value.getResolveState(), encoder);
+        encoder.writeNullableString(value.getRepositoryName());
+        componentDetailsSerializer.writeComponentDetails(value.getResolveState(), returnAllVariants, encoder);
         List<ResolvedGraphVariant> selectedVariants = value.getSelectedVariants();
         encoder.writeSmallInt(selectedVariants.size());
         for (ResolvedGraphVariant variant : selectedVariants) {

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -36,6 +37,9 @@ public interface ResolvedGraphComponent {
     Long getResultId();
 
     ComponentGraphResolveState getResolveState();
+
+    @Nullable
+    String getRepositoryName();
 
     /**
      * Returns a unique id for this component.

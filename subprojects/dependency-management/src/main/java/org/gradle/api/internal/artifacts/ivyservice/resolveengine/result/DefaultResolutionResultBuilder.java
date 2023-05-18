@@ -56,14 +56,15 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     private ComponentSelectionReason selectionReason;
     private ComponentIdentifier componentId;
     private ModuleVersionIdentifier moduleVersion;
-    private String repoId;
+    private String repoName;
+    private ImmutableList<ResolvedVariantResult> allVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
         builder.setRequestedAttributes(attributes);
-        builder.startVisitComponent(0L, ComponentSelectionReasons.root());
-        builder.visitComponentDetails(componentIdentifier, id, null);
+        builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null);
+        builder.visitComponentDetails(componentIdentifier, id);
         builder.visitComponentVariants(Collections.emptyList());
         return builder.complete(0L);
     }
@@ -77,17 +78,18 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     }
 
     @Override
-    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason) {
+    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName) {
         this.id = id;
         this.selectionReason = selectionReason;
         this.selectedVariants.clear();
+        this.allVariants = null;
+        this.repoName = repoName;
     }
 
     @Override
-    public void visitComponentDetails(ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion, @Nullable String repoId) {
+    public void visitComponentDetails(ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion) {
         this.componentId = componentId;
         this.moduleVersion = moduleVersion;
-        this.repoId = repoId;
     }
 
     @Override
@@ -99,7 +101,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     public void visitComponentVariants(List<ResolvedVariantResult> allVariants) {
         // The nodes in the graph represent variants (mostly) and multiple variants of a component may be included in the graph, so a given component may be visited multiple times
         if (!components.containsKey(id)) {
-            components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoId));
+            components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoName));
         }
         selectedVariants.clear();
     }
