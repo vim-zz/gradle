@@ -90,6 +90,7 @@ public class ReleasedVersionDistributions {
                 getProperties().getProperty("versions").split("\\s+"),
                 buildContext::distribution
             );
+            distributions.add(buildContext.distribution("8.1"));
         }
         return distributions;
     }
