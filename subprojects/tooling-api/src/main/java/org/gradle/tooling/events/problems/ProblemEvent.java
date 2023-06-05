@@ -13,20 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<<< HEAD:subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/ProblemEvent.java
 package org.gradle.tooling.events.problems;
+|||||||| parent of 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/Problem.java
+package org.gradle.tooling;
+========
+
+package org.gradle.tooling.events.problems;
+>>>>>>>> 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/ProblemDescriptor.java
 
 import org.gradle.api.Incubating;
+<<<<<<<< HEAD:subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/ProblemEvent.java
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.ProgressEvent;
+|||||||| parent of 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/Problem.java
+import org.gradle.api.NonNullApi;
+
+import java.util.Map;
+========
+import org.gradle.tooling.events.OperationDescriptor;
+
+import java.util.Map;
+>>>>>>>> 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/ProblemDescriptor.java
 
 /**
- * A problem.
+ * Describes a problem operation.
  *
  * @since 8.4
  */
-@NonNullApi
 @Incubating
+<<<<<<<< HEAD:subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/ProblemEvent.java
 public interface ProblemEvent extends ProgressEvent {
     @Override
     ProblemDescriptor getDescriptor();
+|||||||| parent of 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/Problem.java
+public interface Problem {
+
+    Map<String, String> getRawAttributes();
+========
+public interface ProblemDescriptor extends OperationDescriptor {
+    Map<String, String> getRawAttributes();
+>>>>>>>> 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/ProblemDescriptor.java
 }
