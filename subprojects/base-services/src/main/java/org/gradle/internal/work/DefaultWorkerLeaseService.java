@@ -79,7 +79,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public void finishProjectExecution() {
-        // TODO - check no locks are currently held
         Registries current = registries.get();
         Registries next = current.finishProjectExecution();
         setProjectExecutionState(current, next);
