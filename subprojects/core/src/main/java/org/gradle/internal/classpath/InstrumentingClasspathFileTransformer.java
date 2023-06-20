@@ -106,6 +106,14 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
          * @param destination the destination file
          */
         void transform(File destination);
+
+        /**
+         * Modifies the default destination file name if necessary.
+         *
+         * @param rawDestinationName the original destination jar name
+         * @return the modified destination file name
+         */
+        String decorateDestinationFileName(String rawDestinationName);
     }
 
     public InstrumentingClasspathFileTransformer(
@@ -151,7 +159,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
-        String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+        String destFileName = decorateDestinationFileName(source, sourceSnapshot, typeRegistry);
         File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
 
@@ -203,6 +211,10 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         policy.createTransformer(this, source, typeRegistry).transform(dest);
     }
 
+    private String decorateDestinationFileName(File source, FileSystemLocationSnapshot sourceSnapshot, InstrumentingTypeRegistry typeRegistry) {
+        return policy.createTransformer(this, source, typeRegistry).decorateDestinationFileName(sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName());
+    }
+
     /**
      * A no-op transformation that copies the original file verbatim. Can be used if the original cannot be instrumented under policy.
      */
@@ -217,6 +229,11 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         public void transform(File destination) {
             LOGGER.debug("Archive '{}' rejected by policy. Skipping instrumentation.", source.getName());
             GFileUtils.copyFile(source, destination);
+        }
+
+        @Override
+        public String decorateDestinationFileName(String rawDestinationName) {
+            return rawDestinationName;
         }
     }
 
@@ -242,6 +259,11 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
                     LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
                 }
             });
+        }
+
+        @Override
+        public String decorateDestinationFileName(String rawDestinationName) {
+            return rawDestinationName.replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         }
 
         private void visitEntries(ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
