@@ -34,6 +34,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -206,6 +207,11 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     public PatternFilterable getFilter() {
         return filter;
+    }
+
+    @Override
+    public Spec<FileTreeElement> getSpec() {
+        return new AndSpec<>(patterns.getAsSpec(), filter.getAsSpec());
     }
 
     @Override

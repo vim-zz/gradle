@@ -166,7 +166,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeSpecs() {
         when:
-        patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
+        patternSet.include({ FileTreeElement element -> element.name.contains('a') } as Spec)
         then:
         included file('a')
         excluded file('b')
@@ -174,7 +174,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForExcludeSpecs() {
         when:
-        patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
+        patternSet.exclude({ FileTreeElement element -> element.name.contains('b') } as Spec)
         then:
         included file('a')
         excluded file('b')
@@ -182,8 +182,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeAndExcludeSpecs() {
         when:
-        patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
-        patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
+        patternSet.include({ FileTreeElement element -> element.name.contains('a') } as Spec)
+        patternSet.exclude({ FileTreeElement element -> element.name.contains('b') } as Spec)
         then:
         included file('a')
         excluded file('ab')
@@ -193,7 +193,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeClosure() {
         when:
-        patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
+        patternSet.include { FileTreeElement element -> element.name.contains('a') }
         then:
         included file('a')
         excluded file('b')
@@ -201,7 +201,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForExcludeClosure() {
         when:
-        patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
+        patternSet.exclude { FileTreeElement element -> element.name.contains('b') }
         then:
         included file('a')
         excluded file('b')
@@ -209,8 +209,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def createsSpecForIncludeAndExcludeClosures() {
         when:
-        patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
-        patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
+        patternSet.include { FileTreeElement element -> element.name.contains('a') }
+        patternSet.exclude { FileTreeElement element -> element.name.contains('b') }
         then:
         included file('a')
         excluded file('ab')
@@ -244,15 +244,15 @@ class PatternSetTest extends AbstractTestForPatternSet {
         when:
         PatternSet basePatternSet = new PatternSet()
         basePatternSet.include '*a*'
-        basePatternSet.include { FileTreeElement element -> element.file.name.contains('1') }
+        basePatternSet.include { FileTreeElement element -> element.name.contains('1') }
         basePatternSet.exclude '*b*'
-        basePatternSet.exclude { FileTreeElement element -> element.file.name.contains('2') }
+        basePatternSet.exclude { FileTreeElement element -> element.name.contains('2') }
 
         patternSet = basePatternSet.intersect()
         patternSet.include '*c*'
-        patternSet.include { FileTreeElement element -> element.file.name.contains('3') }
+        patternSet.include { FileTreeElement element -> element.name.contains('3') }
         patternSet.exclude '*d*'
-        patternSet.exclude { FileTreeElement element -> element.file.name.contains('4') }
+        patternSet.exclude { FileTreeElement element -> element.name.contains('4') }
 
         then:
         included file('ac')
@@ -369,7 +369,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
     private static FileTreeElement element(boolean isFile, String... elements) {
         [
             getRelativePath: { return new RelativePath(isFile, elements) },
-            getFile        : { return new File(elements.join('/')) }
+            getName: { return new File(elements.join('/')).name }
         ] as FileTreeElement
     }
 
