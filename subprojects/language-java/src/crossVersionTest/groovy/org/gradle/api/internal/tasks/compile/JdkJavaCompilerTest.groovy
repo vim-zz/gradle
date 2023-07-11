@@ -16,19 +16,28 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import groovy.transform.CompileStatic
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.problems.interfaces.ProblemGroup
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor
 
+@TargetGradleVersion(">=8.3")
 class JdkJavaCompilerCrossVersionTest extends ToolingApiSpecification {
+
+    List<ProblemDescriptor> problems = []
+    def progressListener = new ProgressListener() {
+        @Override
+        void statusChanged(ProgressEvent event) {
+            def problemDescriptor = event.descriptor as DefaultProblemsOperationDescriptor
+            problems += problemDescriptor
+        }
+    }
 
     def "single java compilation failure problem arrives"() {
         buildFile << """
@@ -46,15 +55,6 @@ class JdkJavaCompilerCrossVersionTest extends ToolingApiSpecification {
             }
         """
 
-        List<ProblemDescriptor> problems = []
-        def progressListener = new ProgressListener() {
-            @Override
-            void statusChanged(ProgressEvent event) {
-                def problemDescriptor = event.descriptor as DefaultProblemsOperationDescriptor
-                problems += problemDescriptor
-            }
-        }
-
         when:
         withConnection {
             it.newBuild()
@@ -65,11 +65,21 @@ class JdkJavaCompilerCrossVersionTest extends ToolingApiSpecification {
 
         then:
         def compilationProblems = problems.findAll {
-            ProblemGroup.JAVA_COMPILATION.id.equals(it.problemGroup)
+            ProblemGroup.JAVA_COMPILATION.name() == it.problemGroup
         }
         compilationProblems.size() == 1
-        compilationProblems[0].description == "Compilation failed"
+        prettyPrintProblem(compilationProblems[0])
+        compilationProblems[0].message == "Compilation failed"
         thrown BuildException
+    }
+
+    void prettyPrintProblem(ProblemDescriptor problem) {
+        def treeFormatter = new TreeFormatter()
+        treeFormatter.node(problem.message)
+        treeFormatter.startChildren()
+        treeFormatter.node("at " + problem.path + ":" + problem.line + " " + problem.column)
+        treeFormatter.endChildren()
+        println(treeFormatter.toString())
     }
 
 }
