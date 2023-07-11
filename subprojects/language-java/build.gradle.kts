@@ -64,6 +64,7 @@ dependencies {
 
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
+    integTestImplementation(testFixtures(project(":tooling-api")))
     integTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

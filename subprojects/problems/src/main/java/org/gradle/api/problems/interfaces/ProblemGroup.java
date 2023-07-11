@@ -29,7 +29,8 @@ public enum ProblemGroup {
     GENERIC("generic"),
     DEPRECATION("deprecation"),
     VERSION_CATALOG("version_catalog"),
-    TYPE_VALIDATION("type_validation");
+    TYPE_VALIDATION("type_validation"),
+    JAVA_COMPILATION("java_compilation");
 
     private final String id;
 
@@ -37,7 +38,7 @@ public enum ProblemGroup {
         this.id = id;
     }
 
-    public String getId(){
+    public String getId() {
         return id;
     }
 }

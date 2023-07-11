@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
@@ -33,12 +31,15 @@ import org.gradle.internal.operations.OperationProgressEvent;
 
 import javax.annotation.Nonnull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.google.common.base.Strings.nullToEmpty;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
     private final BuildOperationIdFactory idFactory;
-    private final BiMap<Throwable, OperationIdentifier> seenProblems = HashBiMap.create(10);
+    private final Map<Throwable, OperationIdentifier> seenProblems = new HashMap<>();
 
     public ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, BuildOperationIdFactory idFactory) {
         super(progressEventConsumer);
