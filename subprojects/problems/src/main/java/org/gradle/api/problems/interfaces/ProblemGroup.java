@@ -30,7 +30,7 @@ public enum ProblemGroup {
     DEPRECATION("deprecation"),
     VERSION_CATALOG("version_catalog"),
     TYPE_VALIDATION("type_validation"),
-    JAVA_COMPILATION("java_compilation");
+    COMPILATION("compilation");
 
     private final String id;
 

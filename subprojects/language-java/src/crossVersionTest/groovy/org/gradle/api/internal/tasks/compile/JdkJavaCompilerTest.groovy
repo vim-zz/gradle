@@ -65,7 +65,7 @@ class JdkJavaCompilerCrossVersionTest extends ToolingApiSpecification {
 
         then:
         def compilationProblems = problems.findAll {
-            ProblemGroup.JAVA_COMPILATION.name() == it.problemGroup
+            ProblemGroup.COMPILATION.name() == it.problemGroup
         }
         compilationProblems.size() == 1
         prettyPrintProblem(compilationProblems[0])

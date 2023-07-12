@@ -71,7 +71,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private List<Problem> createProblems(DiagnosticCollector<JavaFileObject> diagnosticCollector) {
         return diagnosticCollector.getDiagnostics().stream().map(error ->
             problems.createErrorProblemBuilder(
-                    ProblemGroup.JAVA_COMPILATION,
+                    ProblemGroup.COMPILATION,
                     "Compilation failed",
                     null
                 ).location(
