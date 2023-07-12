@@ -14,51 +14,11 @@
  * limitations under the License.
  */
 
-<<<<<<<< HEAD:subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/internal/package-info.java
 /**
  * Internal problems specisficx.
  **/
 
 @NonNullApi
 package org.gradle.tooling.events.problems.internal;
-|||||||| parent of 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/DefaultProblem.java
-package org.gradle.tooling.internal.consumer;
-========
-package org.gradle.tooling.internal.protocol;
->>>>>>>> 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/internal/protocol/InternalProblemEvent.java
 
 import org.gradle.api.NonNullApi;
-<<<<<<<< HEAD:subprojects/tooling-api/src/main/java/org/gradle/tooling/events/problems/internal/package-info.java
-|||||||| parent of 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/DefaultProblem.java
-import org.gradle.tooling.Problem;
-
-import java.util.Map;
-@NonNullApi
-public class DefaultProblem implements Problem {
-
-    private final Map<String, String> rawAttributes;
-
-    public DefaultProblem(Map<String, String> rawAttributes) {
-        this.rawAttributes = rawAttributes;
-    }
-
-    @Override
-    public Map<String, String> getRawAttributes() {
-        return rawAttributes;
-    }
-}
-========
-import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
-
-import java.util.Map;
-
-
-/**
- * implements org.gradle.tooling.Problem
- */
-@NonNullApi
-public interface InternalProblemEvent extends InternalProgressEvent {
-
-    Map<String, String> getRawAttributes();
-}
->>>>>>>> 878fd58eb59 (Use BuildOperationProgressEventEmitter add all the wiring.):subprojects/tooling-api/src/main/java/org/gradle/tooling/internal/protocol/InternalProblemEvent.java
