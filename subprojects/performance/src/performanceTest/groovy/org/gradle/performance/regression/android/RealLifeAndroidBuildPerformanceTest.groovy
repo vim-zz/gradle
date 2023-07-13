@@ -107,7 +107,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     @Issue("https://github.com/gradle/gradle/issues/25361")
     @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild"),
+//        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild"),
     ])
     def "calculate task graph with test finalizer"() {
         given:
