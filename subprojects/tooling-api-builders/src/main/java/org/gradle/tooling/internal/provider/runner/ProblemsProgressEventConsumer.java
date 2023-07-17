@@ -52,10 +52,12 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         if (details instanceof Problem) {
             Problem problem = (Problem) details;
             Throwable problemCause = problem.getCause();
-            if(seenProblems.containsKey(problemCause)) {
+            
+            if(problemCause != null && seenProblems.containsKey(problemCause)) {
                 return;
+            } else {
+                seenProblems.put(problemCause, buildOperationId);
             }
-            seenProblems.put(problemCause, buildOperationId);
 
             DefaultProblemDescriptor descriptor = new DefaultProblemDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             ProblemLocation where = problem.getWhere();
