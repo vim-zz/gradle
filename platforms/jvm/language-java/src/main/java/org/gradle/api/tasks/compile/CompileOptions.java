@@ -104,11 +104,33 @@ public abstract class CompileOptions extends AbstractOptions {
     public abstract Property<Boolean> getFailOnError();
 
     /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("failOnError")
+    public Property<Boolean> getIsFailOnError() {
+        return getFailOnError();
+    }
+
+    /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
     @Console
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVerbose();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("verbose")
+    public Property<Boolean> getIsVerbose() {
+        return getVerbose();
+    }
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
@@ -118,6 +140,17 @@ public abstract class CompileOptions extends AbstractOptions {
     public abstract Property<Boolean> getListFiles();
 
     /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("listFiles")
+    public Property<Boolean> getIsListFiles() {
+        return getListFiles();
+    }
+
+    /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
     @Console
@@ -125,11 +158,33 @@ public abstract class CompileOptions extends AbstractOptions {
     public abstract Property<Boolean> getDeprecation();
 
     /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("deprecation")
+    public Property<Boolean> getIsDeprecation() {
+        return getDeprecation();
+    }
+
+    /**
      * Tells whether to log warning messages. The default is {@code true}.
      */
     @Console
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getWarnings();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("warnings")
+    public Property<Boolean> getIsWarnings() {
+        return getWarnings();
+    }
 
     /**
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
@@ -147,6 +202,17 @@ public abstract class CompileOptions extends AbstractOptions {
     @Input
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDebug();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("debug")
+    public Property<Boolean> getIsDebug() {
+        return getDebug();
+    }
 
     /**
      * Returns options for generating debugging information.
@@ -171,6 +237,17 @@ public abstract class CompileOptions extends AbstractOptions {
     @Input
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFork();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("fork")
+    public Property<Boolean> getIsFork() {
+        return getFork();
+    }
 
     /**
      * Returns options for running the compiler in a child process.
@@ -292,6 +369,17 @@ public abstract class CompileOptions extends AbstractOptions {
     @Internal
     @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.4
+     */
+    @Incubating
+    @ReplacedBy("incremental")
+    public Property<Boolean> getIsIncremental() {
+        return getIncremental();
+    }
 
     /**
      * Used to enable or disable incremental compilation after a failure.
