@@ -79,6 +79,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
                     Math.toIntExact(error.getLineNumber())
                 )
                 .undocumented()
+                .withMetadata("language", "java")
                 .build()
         ).collect(Collectors.toList());
     }
