@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile
+package org.gradle.integtests.tooling.r84
 
 import org.gradle.api.problems.interfaces.ProblemGroup
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
@@ -27,30 +26,48 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor
 
-@TargetGradleVersion(">=8.3")
-class JdkJavaCompilerCrossVersionTest extends ToolingApiSpecification {
+@TargetGradleVersion(">=8.4")
+class CompileProblemsCrossVersionTests extends ToolingApiSpecification {
 
     List<ProblemDescriptor> problems = []
+
     def progressListener = new ProgressListener() {
         @Override
         void statusChanged(ProgressEvent event) {
             def problemDescriptor = event.descriptor as DefaultProblemsOperationDescriptor
+            System.out.println("Problem observed: " + problemDescriptor.dump())
+            System.out.flush()
             problems += problemDescriptor
         }
     }
 
-    def "single java compilation failure problem arrives"() {
-        buildFile << """
+    def javaBuildFile = """
         plugins {
             id 'java'
         }
-        """
+    """
 
+    def groovyBuildFile = """
+        plugins {
+            id 'groovy'
+        }
+
+        repositories {
+            mavenCentral()
+        }
+
+        dependencies {
+            implementation("org.codehaus.groovy:groovy-all:3.0.18")
+        }
+    """
+
+    def "single java class with single method-level compilation failure problem arrives"() {
+        given:
+        buildFile << javaBuildFile
         file("src/main/java/App.java") << """
             public class App {
                public static void main(String[] args) {
                  nonExistingMethod();
-                 System.out.println("App running with " + System.getProperty("java.home"));
                }
             }
         """
@@ -64,22 +81,48 @@ class JdkJavaCompilerCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
+        thrown BuildException
         def compilationProblems = problems.findAll {
             ProblemGroup.COMPILATION.name() == it.problemGroup
         }
         compilationProblems.size() == 1
-        prettyPrintProblem(compilationProblems[0])
-        compilationProblems[0].message == "Compilation failed"
-        thrown BuildException
+        verifyAll(compilationProblems[0]) {
+            it.message == "Compilation failed"
+        }
     }
 
-    void prettyPrintProblem(ProblemDescriptor problem) {
-        def treeFormatter = new TreeFormatter()
-        treeFormatter.node(problem.message)
-        treeFormatter.startChildren()
-        treeFormatter.node("at " + problem.path + ":" + problem.line + " " + problem.column)
-        treeFormatter.endChildren()
-        println(treeFormatter.toString())
+    def "single java class with double method-level compilation failure problem arrives"() {
+        given:
+        buildFile << javaBuildFile
+        file("src/main/java/App.java") << """
+            public class App {
+               public static void main(String[] args) {
+                 nonExistingMethod1();
+                 nonExistingMethod2();
+               }
+            }
+        """
+
+        when:
+        withConnection {
+            it.newBuild()
+                .forTasks("compileJava")
+                .addProgressListener(progressListener, OperationType.PROBLEMS)
+                .run()
+        }
+
+        then:
+        thrown BuildException
+        def compilationProblems = problems.findAll {
+            ProblemGroup.COMPILATION.name() == it.problemGroup
+        }
+        compilationProblems.size() == 2
+        verifyAll(compilationProblems[0]) {
+            it.message == "Compilation failed"
+        }
+        verifyAll(compilationProblems[1]) {
+            it.message == "Compilation failed"
+        }
     }
 
 }
