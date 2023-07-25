@@ -35,7 +35,7 @@ val tomljVersion = "1.0.0"
 val archunitVersion = "1.0.0-rc1"
 val bytebuddyVersion = "1.10.20"
 val jettyVersion = "9.4.36.v20210114"
-val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
+val sshdVersion = "2.10.0"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
