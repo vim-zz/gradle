@@ -74,6 +74,7 @@
             <trusting group="^com[.]sun($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="06d34ed6ff73de368a772a781063fe98bcecb758" group="com.puppycrawl.tools" name="checkstyle"/>
+         <trusted-key id="073f7a9345756f3b40cdb99e6c70a3b7599c5736" group="org.apache.sshd"/>
          <trusted-key id="0785b3eff60b1b1bea94e0bb7c25280eae63ebe5" group="org.apache.httpcomponents"/>
          <trusted-key id="07dbc3c1ab1f4468471656061c8d5ef0df2b70d4" group="cglib"/>
          <trusted-key id="07e20f0103d9dfc697c490d0368557390486f2c5" group="org.awaitility"/>
@@ -261,6 +262,7 @@
             <trusting group="org.antlr"/>
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
+         <trusted-key id="d5fc4d8e6ff704c573819555bf7cc7defe9389d7" group="com.github.docker-java"/>
          <trusted-key id="d9aa7402ba75f78720d975211d185615d0a84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="db467d22a2666d061fdd120db5bd4591883d638c" group="com.tngtech.archunit"/>
          <trusted-key id="dc98224c6421a7a5bb87f346ed2378cd09a08cde" group="org.jline"/>
@@ -1479,6 +1481,11 @@
       <component group="org.spire-math" name="jawn-parser_2.12" version="0.10.4">
          <artifact name="jawn-parser_2.12-0.10.4.jar">
             <pgp value="8b16e798477be6dc10127d11aa6917fa45e67f20"/>
+         </artifact>
+      </component>
+      <component group="org.testcontainers" name="testcontainers" version="1.16.2">
+         <artifact name="testcontainers-1.16.2.jar">
+            <pgp value="d022218dcc08aad6ef3af876b3de72e647d35161"/>
          </artifact>
       </component>
       <component group="org.testng" name="testng" version="6.3.1">
