@@ -25,6 +25,23 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.bundling.War",
+            "member": "Method org.gradle.api.tasks.bundling.War.getWebXml()",
+            "acceptation": "War.webXml has been converted to lazy",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.War",
+            "member": "Method org.gradle.api.tasks.bundling.War.setWebXml(java.io.File)",
+            "acceptation": "War.webXml has been converted to lazy",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
             "member": "Constructor org.gradle.kotlin.dsl.NamedDomainObjectContainerScope(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.internal.DefaultConstructorMarker)",
             "acceptation": "Private constructor changed to internal. This constructor was synthetically added by Kotlin to allow the private constructor to be called from companion object. It could not be called by Kotlin code.",
