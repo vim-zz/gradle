@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.14") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.14.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
@@ -145,6 +145,12 @@ unassigned {
     subproject("problems")
     subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
+}
+
+// IDE Platform
+platform("ide") {
+    subproject("base-ide-plugins")
+    subproject("ide-plugins")
 }
 
 // JVM Platform
