@@ -1,24 +1,19 @@
-/*
- * Copyright 2023 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
-class CheckReleaseNoteInMergeCommit {
+/**
+ * See https://github.com/gradle/gradle-private/issues/3919
+ *
+ * When merging `releaseX` branch into `master`, we should only use the release note from the `master` branch,
+ * but sometimes changes on release notes.md was brought to master and merged unnoticed,
+ * e.g https://github.com/gradle/gradle/pull/25825
+ *
+ * This script is to check if there is any merge commit that brings changes from release branch to master.
+ * Usage: groovy CheckBadMerge.groovy <commit1> <commit2> ...
+ * If any "bad" merge commit is found, it will print the details and exit with non-zero code.
+ */
+class CheckBadMerge {
     private static final THREAD_POOL = Executors.newCachedThreadPool()
 
     private static final List<String> MONITORED_FILES = [

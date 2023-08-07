@@ -1,4 +1,5 @@
-name: Check release notes in merge commit
+# See .github/workflows/CheckBadMerge.groovy for explanation
+name: Check bad merge commit
 on:
   pull_request:
     types: [ opened ]
@@ -37,7 +38,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const output = `
-            Groovy check failed. Here is the output:
+            Some bad merge is found:
             \`\`\`
             ${{ steps.read_output.outputs.stdout }}
             \`\`\`
