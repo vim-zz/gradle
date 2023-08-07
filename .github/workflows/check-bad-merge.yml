@@ -26,7 +26,7 @@ jobs:
         id: run_check
         run: |
           pr_commits=$(cat pr_commits.txt)
-          groovy .github/workflows/CheckReleaseNoteInMergeCommit.groovy $pr_commits > output.txt || echo "Groovy check failed."
+          groovy .github/workflows/CheckBadMerge.groovy $pr_commits 2>&1 | tee output.txt
       - name: Read output file
         id: read_output
         run: |
