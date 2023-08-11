@@ -93,8 +93,10 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
     private final SetProperty<String> suppressedValidationErrors;
 
+    private final ObjectFactory objectFactory;
+
     public GenerateModuleMetadata() {
-        ObjectFactory objectFactory = getProject().getObjects();
+        this.objectFactory = getProject().getObjects();
         publication = Transient.of(objectFactory.property(Publication.class));
         publications = Transient.of(objectFactory.listProperty(Publication.class));
 
@@ -260,7 +262,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
             publication,
             publications(),
             checker,
-            new DefaultVariantDependencyResolverFactory(getProjectDependencyPublicationResolver(), publication.getVersionMappingStrategy()),
+            objectFactory.newInstance(DefaultVariantDependencyResolverFactory.class, publication.getVersionMappingStrategy()),
             dependencyAttributeValidators()
         ).build();
         checker.validate();

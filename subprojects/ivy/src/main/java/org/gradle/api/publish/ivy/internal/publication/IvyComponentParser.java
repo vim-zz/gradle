@@ -28,9 +28,12 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -53,6 +56,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +91,7 @@ public class IvyComponentParser {
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final VariantDependencyResolverFactory variantDependencyResolverFactory;
 
+    @Inject
     public IvyComponentParser(
         Instantiator instantiator,
         PlatformSupport platformSupport,
@@ -94,14 +99,23 @@ public class IvyComponentParser {
         NotationParser<Object, IvyArtifact> ivyArtifactParser,
         DocumentationRegistry documentationRegistry,
         VersionMappingStrategyInternal versionMappingStrategy,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        AttributesSchemaInternal consumerSchema,
+        ImmutableAttributesFactory attributesFactory
     ) {
         this.instantiator = instantiator;
         this.platformSupport = platformSupport;
         this.ivyArtifactParser = ivyArtifactParser;
         this.documentationRegistry = documentationRegistry;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
-        this.variantDependencyResolverFactory = new DefaultVariantDependencyResolverFactory(projectDependencyResolver, versionMappingStrategy);
+        this.variantDependencyResolverFactory = new DefaultVariantDependencyResolverFactory(
+            projectDependencyResolver,
+            versionMappingStrategy,
+            moduleIdentifierFactory,
+            consumerSchema,
+            attributesFactory
+        );
     }
 
     public IvyConfigurationContainer parseConfigurations(SoftwareComponentInternal component) {
