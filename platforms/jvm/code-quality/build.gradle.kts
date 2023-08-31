@@ -48,7 +48,6 @@ dependencies {
     testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":model-core")))
-    testImplementation(project(":plugins"))
 
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":core-api"))
