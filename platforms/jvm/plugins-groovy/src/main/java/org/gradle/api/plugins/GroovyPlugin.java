@@ -37,7 +37,7 @@ public abstract class GroovyPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(GroovyBasePlugin.class);
-        project.getPluginManager().apply("java"); // TODO: replace with JavaPlugin once that is moved into a plugins-java and the dep cycle between plugins-groovy and plugins is broken
+        project.getPluginManager().apply("java"); // TODO:JavaPlugin replace with JavaPlugin once that is moved into a plugins-java and the dep cycle between plugins-groovy and plugins is broken
         configureGroovydoc(project);
     }
 
