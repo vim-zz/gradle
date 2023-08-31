@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.groovy.compile
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
@@ -38,14 +37,14 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
                 mainClass = "Hello"
             }
 
-            ${AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'org.codehaus.groovy:groovy-all:2.4.10'
             }
         """.stripIndent()
 
-        file('src/main/groovy/Hello.groovy') << """
+            file('src/main/groovy/Hello.groovy') << """
             class Hello {
                 public static void main(String... args) {
                     println "Hello!"
@@ -74,7 +73,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         buildFile.text = """
             plugins { id 'groovy' }
 
-            ${AbstractIntegrationSpec.mavenCentralRepository()}
+            ${mavenCentralRepository()}
             dependencies { implementation 'org.codehaus.groovy:groovy-all:2.4.5' }
         """.stripIndent()
 

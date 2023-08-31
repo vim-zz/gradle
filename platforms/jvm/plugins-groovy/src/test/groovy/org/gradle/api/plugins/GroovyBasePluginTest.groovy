@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,13 +59,13 @@ class GroovyBasePluginTest {
         def task = project.tasks['compileCustomGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Groovy source.'))
-        assertThat(task, org.gradle.api.tasks.TaskDependencyMatchers.dependsOn('compileCustomJava'))
+        assertThat(task, dependsOn('compileCustomJava'))
     }
 
     @Test void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
         project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
-        assertThat(task, org.gradle.api.tasks.TaskDependencyMatchers.dependsOn(hasItem('compileCustomGroovy')))
+        assertThat(task, dependsOn(hasItem('compileCustomGroovy')))
     }
 
     @Test void configuresAdditionalTasksDefinedByTheBuildScript() {

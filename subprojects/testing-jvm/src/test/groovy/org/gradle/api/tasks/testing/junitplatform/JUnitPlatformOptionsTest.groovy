@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.testng
+package org.gradle.api.tasks.testing.junitplatform
 
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import spock.lang.Specification
 
 class JUnitPlatformOptionsTest extends Specification {

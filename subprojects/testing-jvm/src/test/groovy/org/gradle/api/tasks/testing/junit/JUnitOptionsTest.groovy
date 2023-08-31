@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.testng
+package org.gradle.api.tasks.testing.junit
 
-import org.gradle.api.tasks.testing.junit.JUnitOptions
 import spock.lang.Specification
 
 class JUnitOptionsTest extends Specification {
