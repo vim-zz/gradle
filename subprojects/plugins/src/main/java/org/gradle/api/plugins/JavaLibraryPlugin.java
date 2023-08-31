@@ -19,6 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.JvmTestSuitePluginHelper;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 
 import javax.inject.Inject;
@@ -43,7 +44,7 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
         component.getMainFeature().withApi();
 
         // Make compileOnlyApi visible to tests.
-        JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
+        JvmTestSuite defaultTestSuite = JvmTestSuitePluginHelper.getDefaultTestSuite(project);
         project.getConfigurations()
             .getByName(defaultTestSuite.getSources().getCompileOnlyConfigurationName())
             .extendsFrom(component.getMainFeature().getCompileOnlyApiConfiguration());

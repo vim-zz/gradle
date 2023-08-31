@@ -28,7 +28,9 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":plugins"))
+    implementation(project(":language-jvm"))
+    implementation(project(":plugins-groovy"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":workers"))
     implementation(project(":reporting"))
     implementation(project(":platform-jvm"))
@@ -46,6 +48,7 @@ dependencies {
     testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":model-core")))
+    testImplementation(project(":plugins"))
 
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":core-api"))
