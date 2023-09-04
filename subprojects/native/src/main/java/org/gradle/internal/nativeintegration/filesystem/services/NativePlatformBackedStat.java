@@ -16,6 +16,9 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.file.FileInfo;
+import net.rubygrapefruit.platform.file.PosixFileInfo;
 import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 
@@ -30,6 +33,11 @@ class NativePlatformBackedStat implements FileModeAccessor {
 
     @Override
     public int getUnixMode(File f) {
-        return posixFiles.getMode(f);
+        PosixFileInfo stat = posixFiles.stat(f, true);
+        if (stat.getType() == FileInfo.Type.Missing) {
+            throw new NativeException(String.format("Could not get UNIX mode on %s: file does not exist.", f));
+        } else {
+            return stat.getMode();
+        }
     }
 }
