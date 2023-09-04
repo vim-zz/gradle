@@ -22,6 +22,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class DefaultFileTreeElement extends AbstractFileTreeElement {
@@ -78,6 +79,12 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
 
     @Override
     public int getMode() {
-        return stat.getUnixMode(file);
+        File target;
+        try {
+            target = file.getCanonicalFile();
+        } catch (IOException e) {
+            target = file;
+        }
+        return stat.getUnixMode(target);
     }
 }

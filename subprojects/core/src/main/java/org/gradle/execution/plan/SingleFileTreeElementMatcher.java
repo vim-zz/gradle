@@ -124,7 +124,13 @@ public class SingleFileTreeElementMatcher {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(file);
+            File target;
+            try {
+                target = file.getCanonicalFile();
+            } catch (IOException e) {
+                target = file;
+            }
+            return stat.getUnixMode(target);
         }
     }
 }

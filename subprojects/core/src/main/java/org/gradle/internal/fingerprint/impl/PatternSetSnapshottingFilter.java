@@ -143,7 +143,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(getFile());
+            File target = getFile();
+            try {
+                target = target.getCanonicalFile();
+            } catch (IOException e) {
+                // do nothing
+            }
+            return stat.getUnixMode(target);
         }
     }
 
@@ -218,7 +224,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(path.toFile());
+            Path target;
+            try {
+                target = path.toRealPath();
+            } catch (IOException e) {
+                target = path;
+            }
+            return stat.getUnixMode(target.toFile());
         }
     }
 }
