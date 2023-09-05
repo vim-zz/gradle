@@ -101,13 +101,12 @@ However, this does not support all use cases and including plugin builds like th
 === Restrictions on included builds
 
 Most builds can be included into a composite, including other composite builds.
-However there are some restrictions.
+However, there are some restrictions.
 
 Every included build:
 
-* must not have a `rootProject.name` the same as another included build.
-* must not have a `rootProject.name` the same as a top-level project of the composite build.
-* must not have a `rootProject.name` the same as the composite build `rootProject.name`.
+* must not have a `rootProject.name` that is the same as a top-level project name of the composite build.
+* must not have a `rootProject.name` that is the same as the composite build `rootProject.name`.
 
 [NOTE]
 ====
