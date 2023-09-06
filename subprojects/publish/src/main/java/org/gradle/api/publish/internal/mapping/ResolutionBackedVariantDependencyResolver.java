@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyCo
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -71,6 +72,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
     private final Configuration resolutionConfiguration;
     private final AttributesSchemaInternal consumerSchema;
     private final ImmutableAttributesFactory attributesFactory;
+    private final AttributeDesugaring attributeDesugaring;
 
     /**
      * If true, if the variant coordinates are different from the component coordinates, those
@@ -89,7 +91,8 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         Configuration resolutionConfiguration,
         boolean resolveVariantCoordinates,
         AttributesSchemaInternal consumerSchema,
-        ImmutableAttributesFactory attributesFactory
+        ImmutableAttributesFactory attributesFactory,
+        AttributeDesugaring attributeDesugaring
     ) {
         this.declaredVersionTransformer = declaredVersionTransformer;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -98,6 +101,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         this.resolveVariantCoordinates = resolveVariantCoordinates;
         this.consumerSchema = consumerSchema;
         this.attributesFactory = attributesFactory;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     private ResolvedMappings calculateMappings() {
@@ -291,7 +295,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
 
     private Coordinates resolveModuleVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getGroup(), dependency.getName());
-        ModuleDependencyKey key = new ModuleDependencyKey(module, ModuleDependencyDetails.from(dependency));
+        ModuleDependencyKey key = new ModuleDependencyKey(module, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
         ModuleVersionIdentifier resolved = getMappings().resolvedModules.get(key);
         if (resolved != null) {
@@ -310,7 +314,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
 
     private Coordinates resolveProjectVariantCoordinates(ProjectDependency dependency, VariantWarningCollector warnings) {
         Path identityPath = getIdentityPath(dependency);
-        ProjectDependencyKey key = new ProjectDependencyKey(identityPath, ModuleDependencyDetails.from(dependency));
+        ProjectDependencyKey key = new ProjectDependencyKey(identityPath, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
         ModuleVersionIdentifier resolved = getMappings().resolvedProjects.get(key);
         if (resolved != null) {
@@ -444,11 +448,11 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
     }
 
     static class ProjectDependencyKey {
-        private final Path idenityPath;
+        private final Path identityPath;
         private final ModuleDependencyDetails details;
 
-        public ProjectDependencyKey(Path idenityPath, ModuleDependencyDetails details) {
-            this.idenityPath = idenityPath;
+        public ProjectDependencyKey(Path identityPath, ModuleDependencyDetails details) {
+            this.identityPath = identityPath;
             this.details = details;
         }
 
@@ -461,12 +465,12 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
                 return false;
             }
             ProjectDependencyKey that = (ProjectDependencyKey) o;
-            return Objects.equals(idenityPath, that.idenityPath) && Objects.equals(details, that.details);
+            return Objects.equals(identityPath, that.identityPath) && Objects.equals(details, that.details);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(idenityPath, details);
+            return Objects.hash(identityPath, details);
         }
     }
 
@@ -499,9 +503,9 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
             return Objects.hash(requestAttributes, requestCapabilities);
         }
 
-        public static ModuleDependencyDetails from(ModuleDependency dependency) {
+        public static ModuleDependencyDetails from(ModuleDependency dependency, AttributeDesugaring attributeDesugaring) {
             return new ModuleDependencyDetails(
-                dependency.getAttributes(),
+                attributeDesugaring.desugar(((AttributeContainerInternal) dependency.getAttributes()).asImmutable()),
                 dependency.getRequestedCapabilities()
             );
         }

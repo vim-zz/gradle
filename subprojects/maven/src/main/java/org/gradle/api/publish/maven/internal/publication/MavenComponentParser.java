@@ -31,17 +31,14 @@ import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
 import org.gradle.api.publish.internal.mapping.DefaultVariantDependencyResolverFactory;
 import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
@@ -104,27 +101,18 @@ public class MavenComponentParser {
 
     @Inject
     public MavenComponentParser(
+        ObjectFactory objectFactory,
         PlatformSupport platformSupport,
         VersionRangeMapper versionRangeMapper,
         DocumentationRegistry documentationRegistry,
         VersionMappingStrategyInternal versionMappingStrategy,
-        ProjectDependencyPublicationResolver projectDependencyResolver,
-        NotationParser<Object, MavenArtifact> mavenArtifactParser,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributesSchemaInternal consumerSchema,
-        ImmutableAttributesFactory attributesFactory
+        NotationParser<Object, MavenArtifact> mavenArtifactParser
     ) {
         this.platformSupport = platformSupport;
         this.versionRangeMapper = versionRangeMapper;
         this.documentationRegistry = documentationRegistry;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.variantDependencyResolverFactory = new DefaultVariantDependencyResolverFactory(
-            projectDependencyResolver,
-            versionMappingStrategy,
-            moduleIdentifierFactory,
-            consumerSchema,
-            attributesFactory
-        );
+        this.variantDependencyResolverFactory = objectFactory.newInstance(DefaultVariantDependencyResolverFactory.class, versionMappingStrategy);
     }
 
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {

@@ -119,7 +119,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.taskDependencyFactory = taskDependencyFactory;
 
         MavenComponentParser mavenComponentParser = objectFactory.newInstance(
-            MavenComponentParser.class, mavenArtifactParser, versionMappingStrategy
+            MavenComponentParser.class, versionMappingStrategy, mavenArtifactParser
         );
 
         this.componentArtifacts = objectFactory.setProperty(MavenArtifact.class);

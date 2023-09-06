@@ -22,6 +22,7 @@ import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -46,6 +47,7 @@ public class DefaultVariantDependencyResolverFactory implements VariantDependenc
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final AttributesSchemaInternal consumerSchema;
     private final ImmutableAttributesFactory attributesFactory;
+    private final AttributeDesugaring attributeDesugaring;
 
     @Inject
     public DefaultVariantDependencyResolverFactory(
@@ -53,13 +55,15 @@ public class DefaultVariantDependencyResolverFactory implements VariantDependenc
         VersionMappingStrategyInternal versionMappingStrategy,
         ImmutableModuleIdentifierFactory moduleIdentifierFacatory,
         AttributesSchemaInternal consumerSchema,
-        ImmutableAttributesFactory attributesFactory
+        ImmutableAttributesFactory attributesFactory,
+        AttributeDesugaring attributeDesugaring
     ) {
         this.projectDependencyResolver = projectDependencyResolver;
         this.versionMappingStrategy = versionMappingStrategy;
         this.moduleIdentifierFactory = moduleIdentifierFacatory;
         this.consumerSchema = consumerSchema;
         this.attributesFactory = attributesFactory;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
@@ -83,7 +87,8 @@ public class DefaultVariantDependencyResolverFactory implements VariantDependenc
                     configuration,
                     true,
                     consumerSchema,
-                    attributesFactory
+                    attributesFactory,
+                    attributeDesugaring
                 );
             }
         }
@@ -114,7 +119,8 @@ public class DefaultVariantDependencyResolverFactory implements VariantDependenc
                 configuration,
                 false,
                 consumerSchema,
-                attributesFactory
+                attributesFactory,
+                attributeDesugaring
             );
         } else {
             return new VersionMappingVariantDependencyResolver(

@@ -33,6 +33,83 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2"
             }
 
+            components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
+                dependencyMapping {
+                    publishResolvedCoordinates = true
+                    resolutionConfiguration = configurations.runtimeClasspath
+                }
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        groupId = "org"
+                        artifactId = "runtimeElements"
+                        version = "1.0"
+                        from components.java
+                    }
+                }
+            }
+        """
+        def repoModule = javaLibrary(mavenRepo.module('org', "runtimeElements", '1.0'))
+
+        when:
+        succeeds "publish"
+
+        then:
+        // POM uses resolved variant coordinates
+        def dependencies = repoModule.parsedPom.scopes.runtime.dependencies
+        dependencies.size() == 1
+        def dependency = dependencies.values().first()
+        dependency.groupId == "org.jetbrains.kotlinx"
+        dependency.artifactId == "kotlinx-coroutines-core-jvm"
+        dependency.version == "1.7.2"
+
+        // GMM continues to use component coordinates
+        def gmmDependencies = repoModule.parsedModuleMetadata.variant("runtimeElements").dependencies
+        gmmDependencies.size() == 1
+        def gmmDependency = gmmDependencies.first()
+        gmmDependency.group == "org.jetbrains.kotlinx"
+        gmmDependency.module == "kotlinx-coroutines-core"
+        gmmDependency.version == "1.7.2"
+    }
+
+    def "publishes resolved non-jvm coordinates for multi-coordinates external module dependency"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'maven-publish'
+            }
+
+            configurations {
+                dependencyScope("implementation")
+                resolvable("runtimeClasspath") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-api"))
+                        attribute(Attribute.of("org.jetbrains.kotlin.native.target", String), "ios_x64")
+                        attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "native")
+                    }
+                }
+                consumable("runtimeElements") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-api"))
+                        attribute(Attribute.of("org.jetbrains.kotlin.native.target", String), "ios_x64")
+                        attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "native")
+                    }
+                }
+            }
+
+            ${mavenCentralRepository()}
+            dependencies {
+                implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2"
+            }
             interface MyServices {
                 @Inject
                 SoftwareComponentFactory getSoftwareComponentFactory()
@@ -40,7 +117,6 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             def factory = objects.newInstance(MyServices).softwareComponentFactory
             def comp = factory.adhoc("comp")
             comp.addVariantsFromConfiguration(configurations.runtimeElements) {
-                mapToMavenScope('compile')
                 dependencyMapping {
                     publishResolvedCoordinates = true
                     resolutionConfiguration = configurations.runtimeClasspath
@@ -72,7 +148,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         dependencies.size() == 1
         def dependency = dependencies.values().first()
         dependency.groupId == "org.jetbrains.kotlinx"
-        dependency.artifactId == "kotlinx-coroutines-core-jvm"
+        dependency.artifactId == "kotlinx-coroutines-core-iosx64"
         dependency.version == "1.7.2"
 
         // GMM continues to use component coordinates
@@ -104,17 +180,17 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             ${publishMultiCoordinateComponent(rootSeparateConfigurations)}
 
             dependencies {
-                primaryImplementation project(':other')
-                secondaryImplementation project(':other')
+                firstImplementation project(':other')
+                secondImplementation project(':other')
             }
         """
 
         when:
         [rootSeparateConfigurations, otherSeparateConfigurations].count(true).times {
-            executer.expectDocumentedDeprecationWarning("Calling configuration method 'attributes(Action)' is deprecated for configuration 'primaryRuntimeElements-published', which has permitted usage(s):\n" +
+            executer.expectDocumentedDeprecationWarning("Calling configuration method 'attributes(Action)' is deprecated for configuration 'firstRuntimeElements-published', which has permitted usage(s):\n" +
                 "\tDeclarable - this configuration can have dependencies added to it\n" +
                 "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage")
-            executer.expectDocumentedDeprecationWarning("Calling configuration method 'attributes(Action)' is deprecated for configuration 'secondaryRuntimeElements-published', which has permitted usage(s):\n" +
+            executer.expectDocumentedDeprecationWarning("Calling configuration method 'attributes(Action)' is deprecated for configuration 'secondRuntimeElements-published', which has permitted usage(s):\n" +
                 "\tDeclarable - this configuration can have dependencies added to it\n" +
                 "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage")
         }
@@ -122,25 +198,25 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
         then:
         def root = javaLibrary(mavenRepo.module('org', 'root', '1.0'))
-        def primary = javaLibrary(mavenRepo.module('org', 'root-primary', '1.0'))
-        def secondary = javaLibrary(mavenRepo.module('org', 'root-secondary', '1.0'))
+        def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
+        def second = javaLibrary(mavenRepo.module('org', 'root-second', '1.0'))
 
         !root.parsedPom.scopes.compile
         !root.parsedPom.scopes.runtime
 
-        def primaryDeps = primary.parsedPom.scopes.compile.dependencies
-        primaryDeps.size() == 1
-        def primaryDep = primaryDeps.values().first()
-        primaryDep.groupId == "org"
-        primaryDep.artifactId == "other-primary"
-        primaryDep.version == "1.0"
+        def firstDeps = first.parsedPom.scopes.compile.dependencies
+        firstDeps.size() == 1
+        def firstDep = firstDeps.values().first()
+        firstDep.groupId == "org"
+        firstDep.artifactId == "other-first"
+        firstDep.version == "1.0"
 
-        def secondaryDeps = secondary.parsedPom.scopes.compile.dependencies
-        secondaryDeps.size() == 1
-        def secondaryDep = secondaryDeps.values().first()
-        secondaryDep.groupId == "org"
-        secondaryDep.artifactId == "other-secondary"
-        secondaryDep.version == "1.0"
+        def secondDeps = second.parsedPom.scopes.compile.dependencies
+        secondDeps.size() == 1
+        def secondDep = secondDeps.values().first()
+        secondDep.groupId == "org"
+        secondDep.artifactId == "other-second"
+        secondDep.version == "1.0"
 
         where:
         rootSeparateConfigurations | otherSeparateConfigurations
@@ -148,6 +224,151 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         false                      | true
         true                       | false
         true                       | true
+    }
+
+    def "publishes #platform coordinates without any other modifiers"() {
+        given:
+        resolve("${platform}Implementation project(':other')")
+
+        when:
+        succeeds(":publish")
+
+        then:
+        def module = javaLibrary(mavenRepo.module('org', "root-${platform}", '1.0'))
+        def resolved = module.parsedPom.scopes.compile.dependencies.values()
+        resolved*.artifactId == ["other-${platform}"]
+
+        where:
+        platform << ["first", "second"]
+    }
+
+    def "publishes second coordinates for other using attributes"() {
+        given:
+        def module = resolve("""
+            firstImplementation create(project(':other')) {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "second"))
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        def resolved = module.parsedPom.scopes.compile.dependencies.values()
+        resolved*.artifactId == ["other-second"]
+    }
+
+    def "publishes second coordinates for other using capabilities"() {
+        given:
+        def module = resolve("""
+            firstImplementation create(project(':other')) {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "third"))
+                }
+                capabilities {
+                    requireCapability("org:other-third:1.0")
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        def resolved = module.parsedPom.scopes.compile.dependencies.values()
+        resolved*.artifactId == ["other-third"]
+    }
+
+    def "publishes second coordinates for other using target configuration"() {
+        given:
+        def module = resolve("firstImplementation project(path: ':other', configuration: 'firstRuntimeElements')")
+
+        when:
+        succeeds(":publish")
+
+        then:
+        def resolved = module.parsedPom.scopes.compile.dependencies.values()
+        resolved*.artifactId == ["other-first"]
+    }
+
+    def "publishes second coordinates for two dependencies"() {
+        given:
+        def module = resolve("""
+            firstImplementation create(project(':other')) {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "second"))
+                }
+            }
+            firstImplementation create(project(':other')) {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "third"))
+                }
+                capabilities {
+                    requireCapability("org:other-third:1.0")
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        def resolved = module.parsedPom.scopes.compile.dependencies.values()
+        resolved*.artifactId == ["other-second", "other-third"]
+    }
+
+    def "cannot publish variant coordinates when publishing two dependencies where one is a targetConfiguration"() {
+        given:
+        def module = resolve("""
+            firstImplementation project(path: ':other', configuration: 'firstRuntimeElements')
+            firstImplementation create(project(':other'))
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        def resolved = module.parsedPom.scopes.compile.dependencies.values()
+        resolved*.artifactId == ["other-first", "other-second"]
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    def resolve(String declarations) {
+        settingsFile << """
+            include 'other'
+            rootProject.name = 'root'
+        """
+        file("other/build.gradle") << """
+            plugins {
+                id 'maven-publish'
+            }
+            ${publishMultiCoordinateComponent()}
+        """
+
+        buildFile << """
+            plugins {
+                id 'maven-publish'
+            }
+            ${publishMultiCoordinateComponent()}
+
+            dependencies {
+                ${declarations}
+            }
+        """
+
+        javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
     }
 
     // Implementing this would require performing artifact resolution while publishing.
@@ -173,8 +394,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             ${publishMultiCoordinateComponent()}
 
             dependencies {
-                primaryImplementation project(':other')
-                secondaryImplementation project(':other')
+                firstImplementation project(':other')
+                secondImplementation project(':other')
             }
         """
 
@@ -183,111 +404,92 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
         then:
         def root = javaLibrary(mavenRepo.module('org', 'root', '1.0'))
-        def primary = javaLibrary(mavenRepo.module('org', 'root-primary', '1.0'))
-        def secondary = javaLibrary(mavenRepo.module('org', 'root-secondary', '1.0'))
+        def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
+        def second = javaLibrary(mavenRepo.module('org', 'root-second', '1.0'))
 
         !root.parsedPom.scopes.compile
         !root.parsedPom.scopes.runtime
 
-        def primaryDeps = primary.parsedPom.scopes.compile.dependencies
-        primaryDeps.size() == 1
-        def primaryDep = primaryDeps.values().first()
-        primaryDep.groupId == "org"
-        primaryDep.artifactId == "other"
-        primaryDep.version == "1.0"
-        primaryDep.classifier == "primary"
+        def firstDeps = first.parsedPom.scopes.compile.dependencies
+        firstDeps.size() == 1
+        def firstDep = firstDeps.values().first()
+        firstDep.groupId == "org"
+        firstDep.artifactId == "other"
+        firstDep.version == "1.0"
+        firstDep.classifier == "first"
 
-        def secondaryDeps = secondary.parsedPom.scopes.compile.dependencies
-        secondaryDeps.size() == 1
-        def secondaryDep = secondaryDeps.values().first()
-        secondaryDep.groupId == "org"
-        secondaryDep.artifactId == "other"
-        secondaryDep.version == "1.0"
-        secondaryDep.classifier == "secondary"
+        def secondDeps = second.parsedPom.scopes.compile.dependencies
+        secondDeps.size() == 1
+        def secondDep = secondDeps.values().first()
+        secondDep.groupId == "org"
+        secondDep.artifactId == "other"
+        secondDep.version == "1.0"
+        secondDep.classifier == "second"
+    }
+
+    def newCompilation(String name, boolean withSeparatePublishedConfigurations, boolean withOwnAttributes, boolean withOwnCapability = false) {
+        """
+            configurations {
+                dependencyScope("${name}Implementation")
+                consumable("${name}RuntimeElements") {
+                    extendsFrom(${name}Implementation)
+                    ${withOwnAttributes ? """
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "${name}"))
+                        }
+                    """ : ""}
+                    ${withOwnCapability ? "outgoing.capability('org:other-${name}:1.0')" : "" }
+                }
+                ${withSeparatePublishedConfigurations ? """
+                    create("${name}RuntimeElements-published") {
+                        canBeConsumed = false
+                        canBeResolved = false
+                        extendsFrom(${name}Implementation)
+                        ${withOwnAttributes ? """
+                            attributes {
+                                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "${name}"))
+                            }
+                        """ : ""}
+                        ${withOwnCapability ? "outgoing.capability('org:other-${name}:1.0')" : "" }
+                    }
+                    """ : ""
+                }
+                resolvable("${name}RuntimeClasspath") {
+                    extendsFrom(${name}Implementation)
+                    ${withOwnAttributes ? """
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "${name}"))
+                        }
+                    """ : ""}
+                }
+            }
+
+            def ${name}ChildComponent = factory.adhoc("${name}ChildComponent")
+            ${name}ChildComponent.addVariantsFromConfiguration(configurations."${withSeparatePublishedConfigurations ?
+                "${name}RuntimeElements-published" : "${name}RuntimeElements"
+            }") {
+                mapToMavenScope('compile')
+                dependencyMapping {
+                    publishResolvedCoordinates = true
+                    resolutionConfiguration = configurations.${name}RuntimeClasspath
+                }
+            }
+
+            publishing {
+                publications {
+                    ${name}Pub(MavenPublication) {
+                        groupId = "org"
+                        artifactId = project.name + "-${name}"
+                        version = "1.0"
+                        from ${name}ChildComponent
+                    }
+                }
+            }
+        """
     }
 
     def publishMultiCoordinateComponent(boolean withSeparatePublishedConfigurations = false) {
         """
-            configurations {
-                dependencyScope("primaryImplementation")
-                consumable("primaryRuntimeElements") {
-                    extendsFrom(primaryImplementation)
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "primary"))
-                    }
-                }
-                ${withSeparatePublishedConfigurations ? """
-                    create("primaryRuntimeElements-published") {
-                        canBeConsumed = false
-                        canBeResolved = false
-                        extendsFrom(primaryImplementation)
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "primary"))
-                        }
-                    }
-                    """ : ""
-                }
-                resolvable("primaryRuntimeClasspath") {
-                    extendsFrom(primaryImplementation)
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "primary"))
-                    }
-                }
-
-                dependencyScope("secondaryImplementation")
-                consumable("secondaryRuntimeElements") {
-                    extendsFrom(secondaryImplementation)
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "secondary"))
-                    }
-                }
-                ${withSeparatePublishedConfigurations ? """
-                    create("secondaryRuntimeElements-published") {
-                        canBeConsumed = false
-                        canBeResolved = false
-                        extendsFrom(secondaryImplementation)
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "secondary"))
-                        }
-                    }
-                    """ : ""
-                }
-                resolvable("secondaryRuntimeClasspath") {
-                    extendsFrom(secondaryImplementation)
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "secondary"))
-                    }
-                }
-            }
-
-            interface MyServices {
-                @Inject
-                SoftwareComponentFactory getSoftwareComponentFactory()
-            }
-            def factory = objects.newInstance(MyServices).softwareComponentFactory
-
-            def primary = factory.adhoc("primary")
-            primary.addVariantsFromConfiguration(configurations."${withSeparatePublishedConfigurations ?
-                "primaryRuntimeElements-published" : "primaryRuntimeElements"
-            }") {
-                mapToMavenScope('compile')
-                dependencyMapping {
-                    publishResolvedCoordinates = true
-                    resolutionConfiguration = configurations.primaryRuntimeClasspath
-                }
-            }
-
-            def secondary = factory.adhoc("secondary")
-            secondary.addVariantsFromConfiguration(configurations."${withSeparatePublishedConfigurations ?
-                "secondaryRuntimeElements-published" : "secondaryRuntimeElements"
-            }") {
-                mapToMavenScope('compile')
-                dependencyMapping {
-                    publishResolvedCoordinates = true
-                    resolutionConfiguration = configurations.secondaryRuntimeClasspath
-                }
-            }
-
             abstract class RootComponent implements ComponentWithVariants, org.gradle.api.internal.component.SoftwareComponentInternal {
                 private final String name;
 
@@ -311,7 +513,17 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             }
 
             def root = project.objects.newInstance(RootComponent, "root")
-            root.variants.addAll([primary, secondary])
+
+            interface MyServices {
+                @Inject
+                SoftwareComponentFactory getSoftwareComponentFactory()
+            }
+            def factory = objects.newInstance(MyServices).softwareComponentFactory
+            ${newCompilation("first", withSeparatePublishedConfigurations, true)}
+            ${newCompilation("second", withSeparatePublishedConfigurations, true)}
+            ${newCompilation("third", withSeparatePublishedConfigurations, true, true)}
+
+            root.variants.addAll([firstChildComponent, secondChildComponent, thirdChildComponent])
 
             publishing {
                 repositories {
@@ -324,18 +536,6 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                         version = "1.0"
                         from root
                     }
-                    primaryPub(MavenPublication) {
-                        groupId = "org"
-                        artifactId = project.name + "-primary"
-                        version = "1.0"
-                        from primary
-                    }
-                    secondaryPub(MavenPublication) {
-                        groupId = "org"
-                        artifactId = project.name + "-secondary"
-                        version = "1.0"
-                        from secondary
-                    }
                 }
             }
         """
@@ -344,41 +544,41 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
     def publishMavenIncompatibleComponent() {
         """
             configurations {
-                dependencyScope("primaryImplementation")
-                consumable("primaryElements") {
-                    extendsFrom(primaryImplementation)
+                dependencyScope("firstImplementation")
+                consumable("firstElements") {
+                    extendsFrom(firstImplementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "primary"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "first"))
                     }
                     outgoing {
-                        artifact(project.file("primary.jar")) {
-                            classifier = "primary"
+                        artifact(project.file("first.jar")) {
+                            classifier = "first"
                         }
                     }
                 }
-                resolvable("primaryRuntimeClasspath") {
-                    extendsFrom(primaryImplementation)
+                resolvable("firstRuntimeClasspath") {
+                    extendsFrom(firstImplementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "primary"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "first"))
                     }
                 }
 
-                dependencyScope("secondaryImplementation")
-                consumable("secondaryElements") {
-                    extendsFrom(secondaryImplementation)
+                dependencyScope("secondImplementation")
+                consumable("secondElements") {
+                    extendsFrom(secondImplementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "secondary"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "second"))
                     }
                     outgoing {
-                        artifact(project.file("secondary.jar")) {
-                            classifier = "secondary"
+                        artifact(project.file("second.jar")) {
+                            classifier = "second"
                         }
                     }
                 }
-                resolvable("secondaryRuntimeClasspath") {
-                    extendsFrom(secondaryImplementation)
+                resolvable("secondRuntimeClasspath") {
+                    extendsFrom(secondImplementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "secondary"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "second"))
                     }
                 }
             }
@@ -390,21 +590,21 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             def factory = objects.newInstance(MyServices).softwareComponentFactory
 
             def root = factory.adhoc("root")
-            root.addVariantsFromConfiguration(configurations.primaryElements) {
+            root.addVariantsFromConfiguration(configurations.firstElements) {
                 mapToMavenScope('compile')
                 dependencyMapping {
                     publishResolvedCoordinates = true
-                    resolutionConfiguration = configurations.primaryRuntimeClasspath
+                    resolutionConfiguration = configurations.firstRuntimeClasspath
                 }
             }
 
-            def secondary = factory.adhoc("secondary")
-            root.addVariantsFromConfiguration(configurations.secondaryElements) {
+            def second = factory.adhoc("second")
+            root.addVariantsFromConfiguration(configurations.secondElements) {
                 mapToMavenScope('compile')
                 mapToOptional()
                 dependencyMapping {
                     publishResolvedCoordinates = true
-                    resolutionConfiguration = configurations.secondaryRuntimeClasspath
+                    resolutionConfiguration = configurations.secondRuntimeClasspath
                 }
             }
 
