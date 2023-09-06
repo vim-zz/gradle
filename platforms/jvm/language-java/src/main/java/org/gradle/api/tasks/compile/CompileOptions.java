@@ -96,8 +96,11 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     *
+     * @since 8.4
      */
     @Input
+    @Incubating
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
@@ -114,8 +117,11 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
+     *
+     * @since 8.4
      */
     @Console
+    @Incubating
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVerbose();
 
@@ -132,8 +138,11 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
+     *
+     * @since 8.4
      */
     @Console
+    @Incubating
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getListFiles();
 
@@ -150,8 +159,11 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     *
+     * @since 8.4
      */
     @Console
+    @Incubating
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDeprecation();
 
@@ -168,8 +180,11 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
+     *
+     * @since 8.4
      */
     @Console
+    @Incubating
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getWarnings();
 
@@ -196,8 +211,11 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     *
+     * @since 8.4
      */
     @Input
+    @Incubating
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDebug();
 
@@ -231,8 +249,11 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
+     *
+     * @since 8.4
      */
     @Input
+    @Incubating
     @UpgradedProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFork();
 
@@ -363,8 +384,11 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * informs whether to use incremental compilation feature.
+     *
+     * @since 8.4
      */
     @Internal
+    @Incubating
     @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
 
